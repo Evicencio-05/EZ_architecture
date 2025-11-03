@@ -7,8 +7,7 @@ namespace ez_arch {
 
 class RegisterFile {
 public:
-    RegisterFile() : 
-      registers_(registers_.fill(0)), pc_(0);
+    RegisterFile() 
     
     word_t read(register_id_t reg) const;
     void write(register_id_t reg, word_t value);

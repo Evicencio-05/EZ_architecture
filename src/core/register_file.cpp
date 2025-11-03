@@ -1,42 +1,28 @@
-#include <stdexcept>
-#include <iostream>
+#include "core/register_file.hpp"
+#include <cassert>
 #include <algorithm>
 
-#include "core/register_file.hpp"
+namespace ez_arch {
 
-using namespace ez_arch;
+RegisterFile::RegisterFile() {
+    registers_.fill(0);
+    pc_ = 0;
+}
 
 word_t RegisterFile::read(register_id_t reg) const {
-  try {
-    if (reg < NUM_REGISTERS && reg >= 0) {
-      return registers_[reg];
-    } else {
-      throw std::range_error("Register number out of range.") 
-    }
-  }
-  catch (const std::range_error& e) {
-    std::cerr << "Exception caught: " << e.what() << '\n';
-  }
+    assert(reg < NUM_REGISTERS);
+    return registers_[reg];  // Always returns something
 }
 
-void write(register_id_t reg, word_t value) {
-  if (reg == 0) {
-    std::cerr << "Cannot write to $zero register." << '\n';
-  } else {
-    try {
-      if (reg < NUM_REGISTERS && reg > 0) {
-        registers_[reg] = value;
-      } else {
-        throw std::range_error("Register number out of range.") 
-      }
-    }
-    catch (const std::range_error& e) {
-      std::cerr << "Exception caught: " << e.what() << '\n';
-    }
-  }
+void RegisterFile::write(register_id_t reg, word_t value) {
+    assert(reg < NUM_REGISTERS);
+    if (reg == 0) return;  // Hardware rule: $0 is immutable
+    registers_[reg] = value;
 }
 
-void reset() {
-  registers_.fill(0);
-  pc_ = 0;
+void RegisterFile::reset() {
+    registers_.fill(0);
+    pc_ = 0;
 }
+
+} // namespace ez_arch
