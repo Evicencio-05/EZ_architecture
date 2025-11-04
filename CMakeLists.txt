@@ -16,15 +16,18 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 # Find SFML
-find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
+find_package(SFML 3.0 COMPONENTS Graphics Window System REQUIRED)
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
+
+# Enable testing
+enable_testing()
 
 # Subdirectories
 add_subdirectory(src)
 add_subdirectory(tests)
 
-# Installation rules
-install(TARGETS ez_architecture_gui ez_architecture_cli
-        RUNTIME DESTINATION bin)
+# Installation rules (commented out until executables are implemented)
+# install(TARGETS ez_architecture_gui ez_architecture_cli
+#         RUNTIME DESTINATION bin)

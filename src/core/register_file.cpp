@@ -11,12 +11,12 @@ RegisterFile::RegisterFile() {
 
 word_t RegisterFile::read(register_id_t reg) const {
     assert(reg < NUM_REGISTERS);
-    return registers_[reg];  // Always returns something
+    return registers_[reg];
 }
 
 void RegisterFile::write(register_id_t reg, word_t value) {
     assert(reg < NUM_REGISTERS);
-    if (reg == 0) return;  // Hardware rule: $0 is immutable
+    if (reg == 0) return;
     registers_[reg] = value;
 }
 

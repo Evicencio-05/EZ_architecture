@@ -7,7 +7,8 @@ namespace ez_arch {
 
 class Memory {
 public:
-    explicit Memory(size_t size = 1024 * 1024); // Default 1MB
+    explicit Memory(size_t size = 1024 * 1024) :
+      memory_(size, 0) {} // Default 1MB
     
     word_t read_word(address_t addr) const;
     void write_word(address_t addr, word_t value);
@@ -19,6 +20,9 @@ public:
     void reset();
     
     size_t size() const { return memory_.size(); }
+
+    static constexpr size_t BYTE_ACCESS_SIZE = 1;
+    static constexpr size_t WORD_ACCESS_SIZE = 4;
     
 private:
     std::vector<uint8_t> memory_;
