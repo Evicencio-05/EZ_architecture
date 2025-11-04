@@ -17,7 +17,6 @@ class ALU {
 public:
     struct Result {
         word_t value;
-        bool carry;
         bool zero;
         bool overflow;
         bool negative;
