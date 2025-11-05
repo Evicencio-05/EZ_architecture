@@ -31,7 +31,9 @@ public:
     
     // State access
     const RegisterFile& get_registers() const { return registers_; }
+    RegisterFile& get_registers() { return registers_; }
     const Memory& get_memory() const { return memory_; }
+    Memory& get_memory() { return memory_; }
     bool is_halted() const { return halted_; }
     
     // Callbacks for visualization

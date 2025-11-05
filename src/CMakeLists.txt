@@ -6,6 +6,7 @@ add_library(ez_arch_core STATIC
     core/instruction.cpp
     core/decoder.cpp
     core/types.cpp
+    core/cpu.cpp
 )
 
 target_include_directories(ez_arch_core PUBLIC
