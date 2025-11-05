@@ -8,13 +8,10 @@ namespace ez_arch {
 
 class Decoder {
 public:
-    // Decode binary instruction to human-readable format
     static std::string decode(word_t instruction);
     
-    // Assembly to machine code
     static word_t assemble(const std::string& assembly_line);
     
-    // Get instruction details for educational display
     struct InstructionDetails {
         std::string mnemonic;
         InstructionFormat format;
