@@ -9,46 +9,11 @@ A MIPS computer architecture learning tool that helps visualize how MIPS instruc
 - **Pipeline Visualization**: See each stage (Fetch, Decode, Execute, Memory Access, Write Back)
 - **Educational Focus**: Designed for learning computer architecture concepts
 
-## Project Structure
-
-```
-EZ_architecture/
-├── CMakeLists.txt           # Root CMake configuration
-├── build.sh                 # Build script
-├── include/                 # Header files
-│   └── core/
-│       ├── types.hpp        # Type definitions and enums
-│       ├── register_file.hpp # 32 MIPS registers + PC
-│       ├── memory.hpp       # Memory simulation
-│       ├── alu.hpp          # Arithmetic Logic Unit
-│       ├── instruction.hpp  # Instruction parsing
-│       ├── cpu.hpp          # CPU with pipeline stages
-│       └── decoder.hpp      # Assembly/machine code conversion
-├── src/                     # Source files
-│   ├── CMakeLists.txt
-│   ├── core/                # Core MIPS simulation
-│   ├── gui/                 # SFML GUI implementation
-│   └── cli/                 # Command-line interface
-└── tests/                   # Unit tests
-    ├── CMakeLists.txt
-    ├── test_alu.cpp
-    ├── test_memory.cpp
-    ├── test_register_file.cpp
-    ├── test_instruction.cpp
-    └── test_cpu.cpp
-```
-
 ## Dependencies
 
 - **CMake** (>= 3.15)
 - **C++17** compatible compiler (GCC, Clang)
 - **SFML** (>= 2.5) for GUI
-
-### Installing SFML on Arch Linux
-
-```bash
-sudo pacman -S sfml
-```
 
 ## Building
 
@@ -110,12 +75,12 @@ Or run individual tests:
 
 ## Development Roadmap
 
-- [ ] Implement core CPU components
+- [x] Implement core CPU components
 - [ ] Add instruction decoder
 - [ ] Create CLI interface
 - [ ] Build GUI visualizer
 - [ ] Add comprehensive tests
-- [ ] Implement all basic MIPS instructions
+- [x] Implement all basic MIPS instructions
 - [ ] Add pipeline hazard detection
 - [ ] Create example programs
 
