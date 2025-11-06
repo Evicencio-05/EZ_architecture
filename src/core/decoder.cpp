@@ -1,17 +1,10 @@
 #include "core/decoder.hpp"
 #include "core/instruction.hpp"
+#include "core/register_names.hpp"
 #include <sstream>
 #include <iomanip>
 
 namespace ez_arch {
-
-// Register name lookup table
-static const char* REGISTER_NAMES[32] = {
-    "$zero", "$at", "$v0", "$v1", "$a0", "$a1", "$a2", "$a3",
-    "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7",
-    "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7",
-    "$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra"
-};
 
 static std::string decode_r_type(const Instruction& instr) {
   uint8_t funct = instr.get_funct();

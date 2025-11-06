@@ -1,4 +1,4 @@
-#include "include/command_parser.hpp"
+#include "cli/command_parser.hpp"
 #include <sstream>
 #include <algorithm>
 
@@ -50,7 +50,8 @@ namespace ez_arch {
 
   std::vector<std::string> CommandParser::tokenize(std::string_view input) {
     std::vector<std::string> tokens;
-    std::istringstream iss(input);
+    std::string input_str(input);
+    std::istringstream iss(input_str);
     std::string token;
 
     while (iss >> token) {

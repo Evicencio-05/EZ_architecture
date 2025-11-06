@@ -20,10 +20,10 @@ namespace ez_arch {
     UNKNOWN
   };
 
-  stuct Command {
+  struct Command {
     CommandType type;
     std::vector<std::string> args;
-  }
+  };
 
   class CommandParser {
     public: 
@@ -31,6 +31,6 @@ namespace ez_arch {
 
     private:
       static std::vector<std::string> tokenize(std::string_view input);
-  }
+  };
 
 } // namespace ez_arch

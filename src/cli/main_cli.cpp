@@ -7,24 +7,26 @@
 
 using namespace ez_arch;
 
+void print_help();
+
 int main() {
   CPU cpu;
   bool running = true;
 
-  std::cout << "EZ architecture MIPS simulator\n"
+  std::cout << "\nEZ architecture MIPS simulator\n\n"
     << "Type 'help' for commands\n\n";
 
   while (running) {
     std::cout << "> ";
     std::string input;
-    std::getline(cin, input);
+    std::getline(std::cin, input);
 
     if (input.empty()) continue;
 
     Command cmd = CommandParser::parse(input);
 
     switch (cmd.type) {
-      case CommandType::HELP;
+      case CommandType::HELP:
         print_help();
         break;
 
@@ -40,7 +42,8 @@ int main() {
       case CommandType::RUN:
         cpu.run();
         std::cout << "Execution halted\n";
-        OutputFormatter::print_cpu_state();
+        OutputFormatter::print_cpu_state(cpu);
+        break;
 
       case CommandType::REGISTERS:
         OutputFormatter::print_registers(cpu.get_registers());
@@ -55,12 +58,16 @@ int main() {
         std::cout << "CPU reset\n";
         break;
 
-      case CommandType::QUIT;
+      case CommandType::QUIT:
         running = false;
         break;
 
       case CommandType::UNKNOWN:
         std::cout << "Unknown command. Type 'help' for available commands\n";
+        break;
+
+      default:
+        break;
     }
   }
 

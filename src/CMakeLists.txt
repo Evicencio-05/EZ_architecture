@@ -29,13 +29,13 @@ target_include_directories(ez_arch_core PUBLIC
 #     SFML::System
 # )
 
-# CLI executable (commented out until main function is implemented)
-# add_executable(ez_architecture_cli
-#     cli/main_cli.cpp
-#     cli/command_parser.cpp
-#     cli/output_formatter.cpp
-# )
-# 
-# target_link_libraries(ez_architecture_cli
-#     ez_arch_core
-# )
+# CLI executable
+add_executable(ez_architecture_cli
+    cli/main_cli.cpp
+    cli/command_parser.cpp
+    cli/output_formatter.cpp
+)
+
+target_link_libraries(ez_architecture_cli
+    ez_arch_core
+)
