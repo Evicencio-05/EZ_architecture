@@ -1,5 +1,7 @@
 #include "core/cpu.hpp"
 #include "core/alu.hpp"
+#include <string>
+#include <string_view>
 
 namespace ez_arch {
 
@@ -13,8 +15,20 @@ void CPU::load_program(const std::vector<word_t>& program) {
 
 void CPU::step() {
   if (halted_) return;
+  
+  // Ensure we start from FETCH stage
+  while (current_stage_ != ExecutionStage::FETCH) {
+    step_stage();
+  }
 
   fetch();
+  
+  // Check halt condition after fetch
+  if (current_instruction_.get_raw() == 0) {
+    halted_ = true;
+    return;
+  }
+  
   decode();
   execute();
   memory_access();
@@ -24,11 +38,6 @@ void CPU::step() {
 void CPU::run() {
   while(!halted_) {
     step();
-
-    word_t pc = registers_.get_pc();
-    if (pc >= memory_.size() || current_instruction_.get_raw() == 0) {
-      halted_ = true;
-    }
   }
 }
 
@@ -68,6 +77,85 @@ void CPU::step_stage() {
   }
 }
 
+ControlSignals CPU::generate_control_signals(uint8_t opcode) {
+  ControlSignals ctrl;
+  ctrl.clear();
+  
+  switch (opcode) {
+    case 0x00:
+      std::string_view control_bits = "1000010001"
+      break;
+
+    case Opcode::LW:
+      std::string_view control_bits = "0001100011"
+      break;
+
+    case Opcode::SW:
+      std::string_view control_bits = "0000000110"
+      break;
+
+    case Opcode::BEQ: [[fallthrough]]
+    case Opcode::BNE:
+      std::string_view control_bits = "0010001000"
+      break;
+
+    case Opcode::ADDI:
+      std::string_view control_bits = "0000000011"
+      break;
+
+    case Opcode::ANDI:
+      std::string_view control_bits = "0000010011"
+      break;
+
+    case Opcode::ORI:
+      std::string_view control_bits = "0000010011"
+      break;
+
+    case Opcode::J: [[fallthrough]];
+    case Opcode::JAL:
+      std::string_view control_bits = "0100000001"
+      break;
+
+    default:
+      ctrl.clear();
+      break;
+
+  }
+
+  ctrl.RegDst static_cast<bool>(control_bits[0]);
+  ctrl.Jump static_cast<bool>(control_bits[1]);
+  ctrl.Branch static_cast<bool>(control_bits[2]);
+  ctrl.MemRead static_cast<bool>(control_bits[3]);
+  ctrl.MemToReg static_cast<bool>(control_bits[4]);
+  ctrl.ALUOp = static_cast<uint8_t>(control_bits.substr(5,2));
+  ctrl.MemWrite static_cast<bool>(control_bits[7]);
+  ctrl.ALUSrc static_cast<bool>(control_bits[8]);
+  ctrl.RegWrite static_cast<bool>(control_bits[9]);
+
+  return ctrl;
+}
+
+ALUOperation CPU::alu_control(uint8_t ALUOp, uint8_t, funct) {
+  if (ALUOp == 0b00) {
+    return ALUOperation::ADD;
+  } else if (ALUOp == 0b01) {
+    return ALUOperation::SUB;
+  } else if (ALUOp == 0b10) {
+    switch (funct) {
+      case Funct::ADD: return ALUOperation::ADD;
+      case Funct::SUB: return ALUOperation::SUB;
+      case Funct::AND: return ALUOperation::AND;
+      case Funct::OR: return ALUOperation::OR;
+      case Funct::SLT: return ALUOperation::SLT;
+      default: return ALUOperation::ADD;
+    }
+  } else if (ALUOp == 0b11) {
+    return ALUOperation::ADD; // placeholder
+  }
+
+  return ALUOperation::ADD;
+}
+
 // Pipeline stages
 void CPU::fetch() {
   word_t pc = registers_.get_pc();
@@ -76,11 +164,20 @@ void CPU::fetch() {
 }
 
 void CPU::decode() {
-    // TODO  Implement Later to read source registers
+  pipeline_.rs = current_instruction_.get_rs();
+  pipeline_.rt = current_instruction_.get_rt();
+  pipeline_.rd = current_instruction_.get_rd();
+  pipeline_.funct = current_instruction_.get_funct();
+  pipeline_.immediate = current_instruction_.get_immediate();
+
+  pipeline_.read_data_1 = registers_.read(pipeline_.rs);
+  pipeline_.read_data_2 = registers_.read(pipeline_.rt);
+
+  pipeline_.control = generate_control_signals(current_instruction_.get_opcode());
 }
 
 void CPU::execute() {
-  // Note: write_back() always increments PC by 4
+  // NOTE: write_back() always increments PC by 4
   // Branches/jumps compensate by setting PC relative to their target
 
   switch (current_instruction_.get_format()) {

@@ -27,6 +27,8 @@ namespace ez_arch {
       cmd.type = CommandType::LOAD;
     } else if (command == "step" || command == "s") {
       cmd.type = CommandType::STEP;
+    } else if (command == "stage" || command == "st") {
+      cmd.type = CommandType::STEP_STAGE;
     } else if (command == "run" || command == "r") {
       cmd.type = CommandType::RUN;
     } else if (command == "registers" || command == "regs") {

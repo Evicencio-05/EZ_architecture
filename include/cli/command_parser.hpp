@@ -10,6 +10,7 @@ namespace ez_arch {
     HELP,
     LOAD,
     STEP,
+    STEP_STAGE,
     RUN,
     REGISTERS,
     REGISTER,
