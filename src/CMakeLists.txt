@@ -1,3 +1,17 @@
+# Linenoise library (optional)
+if(USE_LINENOISE)
+    add_library(linenoise STATIC
+        ${CMAKE_SOURCE_DIR}/external/linenoise.c
+    )
+    target_include_directories(linenoise PUBLIC
+        ${CMAKE_SOURCE_DIR}/external
+    )
+    # Disable warnings for external code
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(linenoise PRIVATE -w)
+    endif()
+endif()
+
 # Core library
 add_library(ez_arch_core STATIC
     core/register_file.cpp
@@ -9,11 +23,17 @@ add_library(ez_arch_core STATIC
     core/cpu.cpp
     cli/command_parser.cpp
     cli/output_formatter.cpp
+    cli/input_handler.cpp
 )
 
 target_include_directories(ez_arch_core PUBLIC
     ${CMAKE_SOURCE_DIR}/include
 )
+
+if(USE_LINENOISE)
+    target_compile_definitions(ez_arch_core PUBLIC USE_LINENOISE)
+    target_link_libraries(ez_arch_core PUBLIC linenoise)
+endif()
 
 # GUI executable (commented out until main function is implemented)
 # add_executable(ez_architecture_gui
