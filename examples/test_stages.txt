@@ -1,0 +1,18 @@
+load test_program.hex
+watch $8
+watch $9
+registers
+pc
+stage
+stage
+stage
+stage
+stage
+registers
+stage
+stage
+stage
+stage
+stage
+registers
+quit

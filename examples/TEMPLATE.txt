@@ -1,0 +1,7 @@
+load your_program.hex
+watch $8
+watch $9
+registers
+step
+registers
+quit

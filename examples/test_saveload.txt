@@ -1,0 +1,16 @@
+load test_program.hex
+watch $8
+watch $9
+step
+step
+registers
+pc
+save examples/saved_state.bin
+step
+registers
+reset
+registers
+loadstate examples/saved_state.bin
+registers
+pc
+quit

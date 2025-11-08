@@ -1,0 +1,19 @@
+load examples/test_memory.hex
+watch $8
+watch $9
+watch 0x1000
+registers
+memory 0x1000 0x1010
+step
+registers
+memory 0x1000 0x1010
+step
+registers
+memory 0x1000 0x1010
+step
+registers
+memory 0x1000 0x1010
+step
+registers
+memory 0x1000 0x1010
+quit

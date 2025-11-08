@@ -60,6 +60,20 @@ make -j$(nproc)
 ./build/bin/ez_architecture_cli
 ```
 
+### Example Programs
+
+The `examples/` directory contains ready-to-use test programs:
+
+```bash
+# Run a test program
+./build/bin/ez_architecture_cli < examples/test_addition.txt
+
+# Run all examples
+./examples/run_all_tests.sh
+```
+
+See [examples/README.md](examples/README.md) for all available examples and [examples/QUICK_REFERENCE.md](examples/QUICK_REFERENCE.md) for CLI commands.
+
 ## Testing
 
 ```bash

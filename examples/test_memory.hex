@@ -1,0 +1,13 @@
+# Simple memory test program
+# Store values to memory and load them back
+
+# addi $t0, $zero, 42    # Load 42 into $t0
+200A002A
+# sw $t0, 0x1000($zero)  # Store $t0 to memory address 0x1000
+AC081000
+# addi $t1, $zero, 0     # Clear $t1
+20090000
+# lw $t1, 0x1000($zero)  # Load from memory address 0x1000 into $t1
+8C091000
+# halt
+00000000

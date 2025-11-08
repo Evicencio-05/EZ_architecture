@@ -1,0 +1,7 @@
+asm add $t0, $t1, $t2
+asm addi $t0, $zero, 42
+asm lw $t0, 0($zero)
+asm sw $t1, 4($zero)
+asm beq $t0, $t1, 4
+asm j 0x1000
+quit

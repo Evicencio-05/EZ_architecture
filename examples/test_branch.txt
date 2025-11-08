@@ -1,0 +1,16 @@
+load examples/test_branch.hex
+watch $8
+watch $9
+watch $10
+watch $11
+pc
+registers
+step
+pc
+step
+pc
+step
+pc
+step
+registers
+quit

@@ -1,0 +1,11 @@
+load examples/test_loop.hex
+watch $8
+watch $9
+registers
+step
+step
+pc
+run
+registers
+pc
+quit

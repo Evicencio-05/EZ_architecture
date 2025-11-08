@@ -1,0 +1,13 @@
+# Simple loop program
+# Count from 0 to 5 in $t0
+
+# addi $t0, $zero, 0     # $t0 = 0 (counter)
+20080000
+# addi $t1, $zero, 5     # $t1 = 5 (limit)
+20090005
+# Loop: addi $t0, $t0, 1 # $t0 = $t0 + 1
+21080001
+# bne $t0, $t1, -1       # if $t0 != $t1, go back 1 instruction
+1509FFFF
+# halt
+00000000

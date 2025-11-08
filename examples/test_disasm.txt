@@ -1,0 +1,9 @@
+load test_program.hex
+disasm
+step
+disasm
+disasm 0x0
+disasm 0x4
+disasm 0x8
+memory 0x0 0x10
+quit

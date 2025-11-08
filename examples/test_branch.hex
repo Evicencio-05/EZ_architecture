@@ -1,0 +1,15 @@
+# Branch test program
+# Test conditional branching
+
+# addi $t0, $zero, 5     # $t0 = 5
+20080005
+# addi $t1, $zero, 5     # $t1 = 5
+20090005
+# beq $t0, $t1, 2        # If equal, skip 2 instructions (jump to halt)
+11090002
+# addi $t2, $zero, 99    # This should be skipped
+200A0063
+# addi $t3, $zero, 88    # This should be skipped
+200B0058
+# halt
+00000000
