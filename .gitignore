@@ -39,3 +39,6 @@ docs/latex/
 # Misc
 *.log
 
+# CLI history
+.ez_arch_history
+

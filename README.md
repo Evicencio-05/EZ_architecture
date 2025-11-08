@@ -11,26 +11,40 @@ A MIPS computer architecture learning tool that helps visualize how MIPS instruc
 
 ## Dependencies
 
+### Required
 - **CMake** (>= 3.15)
-- **C++17** compatible compiler (GCC, Clang)
-- **SFML** (>= 2.5) for GUI
+- **C++17** compatible compiler (GCC, Clang, MSVC)
+
+### Optional
+- **SFML** (>= 2.5) - for GUI mode (CLI works without it)
+- **linenoise** - included, provides command history and line editing in CLI
 
 ## Building
 
 ### Quick Build
 
 ```bash
-./build.sh          # Debug build
+./build.sh          # Debug build with all features
 ./build.sh Release  # Release build
 ```
 
-### Manual Build
+### Build Options
+
+You can customize the build with CMake options:
 
 ```bash
 mkdir build && cd build
+
+# Build with all features (default)
 cmake ..
+
+# Build without linenoise (basic input only)
+cmake -DUSE_LINENOISE=OFF ..
+
 make -j$(nproc)
 ```
+
+**What's linenoise?** A lightweight library that adds command history (up/down arrows) and line editing to the CLI. It's included in the project and enabled by default.
 
 ## Running
 
