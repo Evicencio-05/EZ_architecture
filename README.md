@@ -104,13 +104,13 @@ Or run individual tests:
 ## Development Roadmap
 
 - [x] Implement core CPU components
-- [ ] Add instruction decoder
-- [ ] Create CLI interface
+- [x] Add instruction decoder
+- [x] Create CLI interface
 - [ ] Build GUI visualizer
 - [ ] Add comprehensive tests
 - [x] Implement all basic MIPS instructions
 - [ ] Add pipeline hazard detection
-- [ ] Create example programs
+- [x] Create example programs for CLI
 
 ## License
 
