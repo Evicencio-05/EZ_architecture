@@ -40,17 +40,16 @@ struct ControlSignals {
   bool ALUSrc;
   bool RegWrite;
 
-  void clear {
-  RegDst = false;
-  Jump = false;
-  Branch = false;
-  MemRead = false;
-  MemToReg = false;
-  ALUOp = 0;
-  MemWrite = false;
-  ALUSrc = false;
-  RegWrite = false;
-
+  void clear() {
+    RegDst = false;
+    Jump = false;
+    Branch = false;
+    MemRead = false;
+    MemToReg = false;
+    ALUOp = 0;
+    MemWrite = false;
+    ALUSrc = false;
+    RegWrite = false;
   }
 };
 

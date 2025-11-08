@@ -7,6 +7,8 @@ add_library(ez_arch_core STATIC
     core/decoder.cpp
     core/types.cpp
     core/cpu.cpp
+    cli/command_parser.cpp
+    cli/output_formatter.cpp
 )
 
 target_include_directories(ez_arch_core PUBLIC

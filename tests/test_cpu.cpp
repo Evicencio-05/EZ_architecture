@@ -508,6 +508,104 @@ TEST(CPUTest, StoreWordWithNegativeOffset) {
   EXPECT_EQ(cpu.get_memory().read_word(100), 0xABCDEF00);
 }
 
+// Control Signals and Pipeline Tests
+TEST(CPUTest, StageToString) {
+  EXPECT_EQ(stageToString(ExecutionStage::FETCH), "Fetch (IF)");
+  EXPECT_EQ(stageToString(ExecutionStage::DECODE), "Decode (ID)");
+  EXPECT_EQ(stageToString(ExecutionStage::EXECUTE), "Execute (EXE)");
+  EXPECT_EQ(stageToString(ExecutionStage::MEMORY_ACCESS), "Memory Access (MEM)");
+  EXPECT_EQ(stageToString(ExecutionStage::WRITE_BACK), "Write Back (WB)");
+}
+
+TEST(CPUTest, HaltDetection) {
+  CPU cpu;
+  // Program with explicit halt (NOP = 0x00000000)
+  std::vector<word_t> program = {
+    make_r_instruction(1, 2, 3, 0, Funct::ADD),
+    0x00000000  // Halt instruction
+  };
+  
+  cpu.load_program(program);
+  cpu.get_registers().write(1, 10);
+  cpu.get_registers().write(2, 20);
+  
+  EXPECT_FALSE(cpu.is_halted());
+  
+  cpu.step();  // Execute ADD
+  EXPECT_FALSE(cpu.is_halted());
+  EXPECT_EQ(cpu.get_registers().read(3), 30);
+  
+  cpu.step();  // Fetch halt instruction
+  EXPECT_TRUE(cpu.is_halted());
+}
+
+TEST(CPUTest, PipelineStagesAfterReset) {
+  CPU cpu;
+  std::vector<word_t> program = {make_r_instruction(1, 2, 3, 0, Funct::ADD)};
+  
+  cpu.load_program(program);
+  cpu.step_stage();  // Move to DECODE
+  cpu.step_stage();  // Move to EXECUTE
+  
+  EXPECT_EQ(cpu.get_current_stage(), ExecutionStage::EXECUTE);
+  
+  cpu.reset();
+  
+  EXPECT_EQ(cpu.get_current_stage(), ExecutionStage::FETCH);
+  EXPECT_FALSE(cpu.is_halted());
+}
+
+TEST(CPUTest, ControlSignalsRType) {
+  CPU cpu;
+  // R-type instructions should have specific control signals
+  std::vector<word_t> program = {make_r_instruction(1, 2, 3, 0, Funct::ADD)};
+  
+  cpu.load_program(program);
+  cpu.get_registers().write(1, 10);
+  cpu.get_registers().write(2, 20);
+  
+  // Execute the instruction
+  cpu.step();
+  
+  // Verify the result - control signals are internal but result should be correct
+  EXPECT_EQ(cpu.get_registers().read(3), 30);
+  EXPECT_EQ(cpu.get_registers().get_pc(), 4);
+}
+
+TEST(CPUTest, ControlSignalsITypeADDI) {
+  CPU cpu;
+  std::vector<word_t> program = {make_i_instruction(Opcode::ADDI, 1, 2, 50)};
+  
+  cpu.load_program(program);
+  cpu.get_registers().write(1, 100);
+  
+  cpu.step();
+  
+  EXPECT_EQ(cpu.get_registers().read(2), 150);
+}
+
+TEST(CPUTest, ControlSignalsLoadStore) {
+  CPU cpu;
+  std::vector<word_t> program = {
+    make_i_instruction(Opcode::ADDI, 0, 1, 100),  // r1 = 100 (address)
+    make_i_instruction(Opcode::ADDI, 0, 2, 42),   // r2 = 42 (data)
+    make_i_instruction(Opcode::SW, 1, 2, 0),      // mem[r1] = r2
+    make_i_instruction(Opcode::LW, 1, 3, 0)       // r3 = mem[r1]
+  };
+  
+  cpu.load_program(program);
+  
+  cpu.step();  // r1 = 100
+  cpu.step();  // r2 = 42
+  cpu.step();  // Store r2 to memory[100]
+  cpu.step();  // Load from memory[100] to r3
+  
+  EXPECT_EQ(cpu.get_registers().read(1), 100);
+  EXPECT_EQ(cpu.get_registers().read(2), 42);
+  EXPECT_EQ(cpu.get_registers().read(3), 42);
+  EXPECT_EQ(cpu.get_memory().read_word(100), 42);
+}
+
 // Complex Programs
 TEST(CPUTest, SimpleLoop) {
   CPU cpu;

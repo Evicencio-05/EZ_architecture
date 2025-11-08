@@ -16,9 +16,13 @@ target_link_libraries(test_instruction ez_arch_core GTest::gtest GTest::gtest_ma
 add_executable(test_cpu test_cpu.cpp)
 target_link_libraries(test_cpu ez_arch_core GTest::gtest GTest::gtest_main)
 
+add_executable(test_command_parser test_command_parser.cpp)
+target_link_libraries(test_command_parser ez_arch_core GTest::gtest GTest::gtest_main)
+
 # Add tests
 add_test(NAME RegisterFileTest COMMAND test_register_file)
 add_test(NAME MemoryTest COMMAND test_memory)
 add_test(NAME ALUTest COMMAND test_alu)
 add_test(NAME InstructionTest COMMAND test_instruction)
 add_test(NAME CPUTest COMMAND test_cpu)
+add_test(NAME CommandParserTest COMMAND test_command_parser)
