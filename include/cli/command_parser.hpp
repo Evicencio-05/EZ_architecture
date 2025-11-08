@@ -16,6 +16,11 @@ namespace ez_arch {
     REGISTER,
     MEMORY,
     PC,
+    DISASSEMBLE,
+    ASSEMBLE,
+    WATCH,
+    SAVE,
+    LOAD_STATE,
     RESET,
     QUIT,
     UNKNOWN

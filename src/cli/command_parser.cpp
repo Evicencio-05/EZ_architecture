@@ -39,6 +39,16 @@ namespace ez_arch {
       cmd.type = CommandType::MEMORY;
     } else if (command == "pc") {
       cmd.type = CommandType::PC;
+    } else if (command == "disasm" || command == "dis" || command == "d") {
+      cmd.type = CommandType::DISASSEMBLE;
+    } else if (command == "asm" || command == "a") {
+      cmd.type = CommandType::ASSEMBLE;
+    } else if (command == "watch" || command == "w") {
+      cmd.type = CommandType::WATCH;
+    } else if (command == "save") {
+      cmd.type = CommandType::SAVE;
+    } else if (command == "loadstate") {
+      cmd.type = CommandType::LOAD_STATE;
     } else if (command == "reset") {
       cmd.type = CommandType::RESET;
     } else if (command == "quit" || command == "exit" || command == "q") {

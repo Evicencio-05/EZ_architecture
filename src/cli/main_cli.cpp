@@ -10,8 +10,17 @@
 
 using namespace ez_arch;
 
+struct WatchExpression {
+  std::string expr;
+  enum Type { REGISTER, MEMORY } type;
+  uint32_t value;
+};
+
+std::vector<WatchExpression> watches;
+
 void print_help();
 std::vector<word_t> load_hex_file(const std::string& filename);
+void print_watches(const CPU& cpu);
 
 int main() {
   CPU cpu;
@@ -61,18 +70,27 @@ int main() {
         }
 
         OutputFormatter::print_cpu_state(cpu);
+        if (!watches.empty()) {
+          print_watches(cpu);
+        }
         break;
       }
 
       case CommandType::STEP_STAGE:
         cpu.step_stage();
         OutputFormatter::print_cpu_state(cpu);
+        if (!watches.empty()) {
+          print_watches(cpu);
+        }
         break;
 
       case CommandType::RUN:
         cpu.run();
         std::cout << "Execution halted\n";
         OutputFormatter::print_cpu_state(cpu);
+        if (!watches.empty()) {
+          print_watches(cpu);
+        }
         break;
 
       case CommandType::REGISTERS:
@@ -117,6 +135,172 @@ int main() {
         break;
       }
 
+      case CommandType::DISASSEMBLE: {
+        try {
+          address_t addr = cpu.get_registers().get_pc();
+          if (!cmd.args.empty()) {
+            addr = std::stoul(cmd.args[0], nullptr, 16);
+          }
+          word_t instruction = cpu.get_memory().read_word(addr);
+          std::string assembly = Decoder::decode(instruction);
+          std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
+                    << addr << ": 0x" << std::setw(8) << instruction
+                    << std::dec << "  " << assembly << '\n';
+        } catch (const std::exception& e) {
+          std::cerr << "Error: " << e.what() << '\n';
+        }
+        break;
+      }
+
+      case CommandType::ASSEMBLE: {
+        if (cmd.args.empty()) {
+          std::cout << "Usage: asm <assembly instruction>\n";
+          std::cout << "Example: asm add $t0, $t1, $t2\n";
+        } else {
+          try {
+            // Reconstruct the full assembly line from args
+            std::string assembly_line = cmd.args[0];
+            for (size_t i = 1; i < cmd.args.size(); ++i) {
+              assembly_line += " " + cmd.args[i];
+            }
+            
+            word_t instruction = Decoder::assemble(assembly_line);
+            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
+                      << instruction << std::dec << '\n';
+          } catch (const std::exception& e) {
+            std::cerr << "Error: " << e.what() << '\n';
+          }
+        }
+        break;
+      }
+
+      case CommandType::WATCH: {
+        if (cmd.args.empty()) {
+          if (watches.empty()) {
+            std::cout << "No watch expressions\n";
+          } else {
+            print_watches(cpu);
+          }
+        } else {
+          const std::string& expr = cmd.args[0];
+          WatchExpression watch;
+          watch.expr = expr;
+          
+          // Parse watch expression
+          if (expr[0] == '$') {
+            // Register watch: $0, $1, etc.
+            try {
+              watch.type = WatchExpression::REGISTER;
+              watch.value = std::stoi(expr.substr(1));
+              if (watch.value >= 32) {
+                std::cerr << "Invalid register number\n";
+                break;
+              }
+              watches.push_back(watch);
+              std::cout << "Added watch: " << expr << '\n';
+            } catch (const std::exception& e) {
+              std::cerr << "Invalid register format\n";
+            }
+          } else if (expr[0] == '0' && expr[1] == 'x') {
+            // Memory watch: 0x1000, etc.
+            try {
+              watch.type = WatchExpression::MEMORY;
+              watch.value = std::stoul(expr, nullptr, 16);
+              watches.push_back(watch);
+              std::cout << "Added watch: " << expr << '\n';
+            } catch (const std::exception& e) {
+              std::cerr << "Invalid address format\n";
+            }
+          } else {
+            std::cerr << "Watch format: $<reg_num> or 0x<address>\n";
+          }
+        }
+        break;
+      }
+
+      case CommandType::SAVE: {
+        if (cmd.args.empty()) {
+          std::cout << "Usage: save <filename>\n";
+        } else {
+          std::ofstream outfile(cmd.args[0], std::ios::binary);
+          if (!outfile) {
+            std::cerr << "Error: Could not open file for writing\n";
+            break;
+          }
+          
+          // Save registers (32 registers)
+          for (register_id_t i = 0; i < 32; ++i) {
+            word_t value = cpu.get_registers().read(i);
+            outfile.write(reinterpret_cast<const char*>(&value), sizeof(value));
+          }
+          
+          // Save PC
+          word_t pc = cpu.get_registers().get_pc();
+          outfile.write(reinterpret_cast<const char*>(&pc), sizeof(pc));
+          
+          // Save memory (iterate through memory and save non-zero words)
+          // Simple approach: save first 64KB (0x0 to 0x10000)
+          for (address_t addr = 0; addr < 0x10000; addr += 4) {
+            try {
+              word_t value = cpu.get_memory().read_word(addr);
+              outfile.write(reinterpret_cast<const char*>(&addr), sizeof(addr));
+              outfile.write(reinterpret_cast<const char*>(&value), sizeof(value));
+            } catch (...) {
+              // Skip unreadable addresses
+            }
+          }
+          
+          std::cout << "CPU state saved to " << cmd.args[0] << '\n';
+        }
+        break;
+      }
+
+      case CommandType::LOAD_STATE: {
+        if (cmd.args.empty()) {
+          std::cout << "Usage: loadstate <filename>\n";
+        } else {
+          std::ifstream infile(cmd.args[0], std::ios::binary);
+          if (!infile) {
+            std::cerr << "Error: Could not open file for reading\n";
+            break;
+          }
+          
+          cpu.reset();
+          
+          // Load registers
+          for (register_id_t i = 0; i < 32; ++i) {
+            word_t value;
+            infile.read(reinterpret_cast<char*>(&value), sizeof(value));
+            if (i != 0) {  // Don't write to $0
+              cpu.get_registers().write(i, value);
+            }
+          }
+          
+          // Load PC
+          word_t pc;
+          infile.read(reinterpret_cast<char*>(&pc), sizeof(pc));
+          cpu.get_registers().set_pc(pc);
+          
+          // Load memory
+          while (infile) {
+            address_t addr;
+            word_t value;
+            infile.read(reinterpret_cast<char*>(&addr), sizeof(addr));
+            if (!infile) break;
+            infile.read(reinterpret_cast<char*>(&value), sizeof(value));
+            if (!infile) break;
+            try {
+              cpu.get_memory().write_word(addr, value);
+            } catch (...) {
+              // Skip unwriteable addresses
+            }
+          }
+          
+          std::cout << "CPU state loaded from " << cmd.args[0] << '\n';
+        }
+        break;
+      }
+
       case CommandType::RESET:
         cpu.reset();
         std::cout << "CPU reset\n";
@@ -151,6 +335,11 @@ void print_help() {
             << "  memory                - Display memory at address\n"
             << "  memory <start> <end>  - Display memory in range\n"
             << "  pc                    - Display program counter\n"
+            << "  disasm [addr]         - Disassemble instruction (default: at PC)\n"
+            << "  asm <instruction>     - Assemble instruction to machine code\n"
+            << "  watch <expr>          - Add watch expression ($reg or 0xaddr)\n"
+            << "  save <file>           - Save CPU state to file\n"
+            << "  loadstate <file>      - Load CPU state from file\n"
             << "  reset                 - Reset CPU state\n"
             << "  quit                  - Exit simulator\n";
 }
@@ -178,4 +367,28 @@ std::vector<word_t> load_hex_file(const std::string& filename) {
   }
 
   return program;
+}
+
+void print_watches(const CPU& cpu) {
+  std::cout << "\nWatch expressions:\n";
+  for (const auto& watch : watches) {
+    std::cout << "  " << watch.expr << " = ";
+    
+    try {
+      if (watch.type == WatchExpression::REGISTER) {
+        word_t value = cpu.get_registers().read(watch.value);
+        std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
+                  << value << std::dec << " (" << static_cast<int32_t>(value) << ")";
+      } else {  // MEMORY
+        word_t value = cpu.get_memory().read_word(watch.value);
+        std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
+                  << value << std::dec;
+      }
+    } catch (const std::exception& e) {
+      std::cout << "<error: " << e.what() << ">";
+    }
+    
+    std::cout << '\n';
+  }
+  std::cout << '\n';
 }
