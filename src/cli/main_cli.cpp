@@ -2,6 +2,7 @@
 #include "core/decoder.hpp"
 #include "cli/command_parser.hpp"
 #include "cli/output_formatter.hpp"
+#include "cli/input_handler.hpp"
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -25,16 +26,27 @@ void print_watches(const CPU& cpu);
 int main() {
   CPU cpu;
   bool running = true;
+  InputHandler input_handler;
+
+  // Load command history from previous sessions
+  input_handler.load_history(".ez_arch_history");
 
   std::cout << "\nEZ architecture MIPS simulator\n\n"
     << "Type 'help' for commands\n\n";
 
   while (running) {
-    std::cout << "> ";
-    std::string input;
-    std::getline(std::cin, input);
+    std::string input = input_handler.readline("> ");
+
+    // Handle EOF (Ctrl+D)
+    if (input.empty() && std::cin.eof()) {
+      std::cout << "\n";
+      break;
+    }
 
     if (input.empty()) continue;
+
+    // Add non-empty commands to history
+    input_handler.add_history(input);
 
     Command cmd = CommandParser::parse(input);
 
@@ -307,6 +319,7 @@ int main() {
         break;
 
       case CommandType::QUIT:
+        input_handler.save_history(".ez_arch_history");
         running = false;
         break;
 
