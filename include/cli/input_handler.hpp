@@ -1,5 +1,4 @@
-#ifndef INPUT_HANDLER_HPP
-#define INPUT_HANDLER_HPP
+#pragma once
 
 #include <string>
 
@@ -19,28 +18,12 @@ public:
   InputHandler();
   ~InputHandler();
 
-  /**
-   * Read a line of input from the user with the given prompt.
-   * Returns empty string on EOF or error.
-   */
   std::string readline(const char* prompt);
 
-  /**
-   * Add a line to the command history.
-   * Only effective when linenoise is enabled.
-   */
   void add_history(const std::string& line);
 
-  /**
-   * Save command history to a file.
-   * Only effective when linenoise is enabled.
-   */
   bool save_history(const char* filename);
 
-  /**
-   * Load command history from a file.
-   * Only effective when linenoise is enabled.
-   */
   bool load_history(const char* filename);
 
 private:
@@ -49,4 +32,3 @@ private:
 
 } // namespace ez_arch
 
-#endif // INPUT_HANDLER_HPP

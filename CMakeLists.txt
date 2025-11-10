@@ -31,6 +31,5 @@ enable_testing()
 add_subdirectory(src)
 add_subdirectory(tests)
 
-# Installation rules (commented out until executables are implemented)
-# install(TARGETS ez_architecture_gui ez_architecture_cli
-#         RUNTIME DESTINATION bin)
+install(TARGETS ez_architecture_gui ez_architecture_cli
+        RUNTIME DESTINATION bin)
