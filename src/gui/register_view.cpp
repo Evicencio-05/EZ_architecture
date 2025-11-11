@@ -25,18 +25,13 @@ void RegisterView::draw(sf::RenderWindow& window) {
     drawHeader(window);
     
     // Draw all 32 registers in a table
-    // We'll display them in 2 columns to save vertical space
-    const int REGISTERS_PER_COLUMN = 32;
     const float COLUMN_WIDTH = 200.f;
-    const float ROW_HEIGHT = 25.f;
+    const float ROW_HEIGHT = 17.f;
     const float HEADER_HEIGHT = 60.f;
     
     for (int i = 0; i < 32; i++) {
-        int column = i / REGISTERS_PER_COLUMN;  // Which column (0 or 1)
-        int row = i % REGISTERS_PER_COLUMN;      // Which row within that column
-        
-        float regX = x_ + (column * COLUMN_WIDTH);
-        float regY = y_ + HEADER_HEIGHT + (row * ROW_HEIGHT);
+        float regX = x_ + COLUMN_WIDTH;
+        float regY = y_ + HEADER_HEIGHT + (i * ROW_HEIGHT);
         
         drawRegister(window, i, regY);
     }
@@ -44,7 +39,7 @@ void RegisterView::draw(sf::RenderWindow& window) {
 
 void RegisterView::drawHeader(sf::RenderWindow& window) {
     // Draw background box for the entire register view
-    sf::RectangleShape background({190.f, 860.f});
+    sf::RectangleShape background({180.f, 610.f});
     background.setPosition({x_, y_});
     background.setFillColor(VIEW_BOX_BACKGROUND_COLOR);
     background.setOutlineColor(VIEW_BOX_OUTLINE_COLOR);
@@ -61,7 +56,7 @@ void RegisterView::drawHeader(sf::RenderWindow& window) {
     
     // Draw column headers
     sf::Text header(font_);
-    header.setString("Reg    Name     Value");
+    header.setString("Reg    Name   Value");
     header.setCharacterSize(14);
     header.setFillColor(sf::Color::Black);
     header.setPosition({x_ + 10.f, y_ + 40.f});
@@ -77,7 +72,7 @@ void RegisterView::drawRegister(sf::RenderWindow& window, int regNum, float rowY
     
     // Format register number (e.g., "$0", "$1", etc.)
     std::ostringstream regNumStream;
-    regNumStream << "$" << regNum;
+    regNumStream << regNum;
     
     // Format value as hexadecimal (e.g., "0x00000000")
     std::ostringstream valueStream;
@@ -103,8 +98,8 @@ void RegisterView::drawRegister(sf::RenderWindow& window, int regNum, float rowY
     sf::Text valueText(font_);
     valueText.setString(valueStream.str());
     valueText.setCharacterSize(12);
-    valueText.setFillColor(sf::Color::Black);  // Green for values
-    valueText.setPosition({x_ + 110.f, rowY});
+    valueText.setFillColor(sf::Color::Black);
+    valueText.setPosition({x_ + 100.f, rowY});
     window.draw(valueText);
 }
 
