@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include "gui/custom_shapes.hpp"
 #include "core/cpu.hpp"
 
 namespace ez_arch {
@@ -14,6 +15,8 @@ public:
     
     void update();
     void draw(sf::RenderWindow& window);
+
+    void drawScaffolding(sf::RenderWindow& window, sf::Vector2f mainAreaSize);
     
 private:
     const CPU& m_cpu;
@@ -51,11 +54,6 @@ private:
     };
     
     ComponentBox m_pcBox;
-    ComponentBox m_instrMemBox;
-    ComponentBox m_regFileBox;
-    ComponentBox m_aluBox;
-    ComponentBox m_dataMemBox;
-    ComponentBox m_controlBox;
     
     // All wire connections
     std::vector<Wire> m_wires;
@@ -63,14 +61,9 @@ private:
     // Drawing helpers
     void calculateLayout();
     void setupWires();  // Define all wire connections
-    void drawComponent(sf::RenderWindow& window, const ComponentBox& box, sf::Color color);
+    void drawComponentBox(sf::RenderWindow& window, const ComponentBox& box, sf::Color color);
     void drawWire(sf::RenderWindow& window, const Wire& wire);
     void drawWireLabel(sf::RenderWindow& window, const Wire& wire);
-    void drawConnection(sf::RenderWindow& window, sf::Vector2f start, sf::Vector2f end, 
-                       sf::Color color, bool active = false);
-    
-    // Helper for drawing multiplexers
-    void drawMux(sf::RenderWindow& window, sf::Vector2f position, float size);
 };
 
 } // namespace ez_arch

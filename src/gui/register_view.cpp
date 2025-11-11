@@ -25,14 +25,11 @@ void RegisterView::draw(sf::RenderWindow& window) {
     drawHeader(window);
     
     // Draw all 32 registers in a table
-    const float COLUMN_WIDTH = 200.f;
     const float ROW_HEIGHT = 17.f;
     const float HEADER_HEIGHT = 60.f;
     
     for (int i = 0; i < 32; i++) {
-        float regX = m_x + COLUMN_WIDTH;
         float regY = m_y + HEADER_HEIGHT + (i * ROW_HEIGHT);
-        
         drawRegister(window, i, regY);
     }
 }

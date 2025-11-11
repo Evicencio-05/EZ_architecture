@@ -34,7 +34,7 @@ namespace ez_arch {
       
       // Create the datapath view for main area
       m_datapathView = std::make_unique<DatapathView>(m_cpu, m_font);
-      
+
       // Create control buttons - positioned in top bar
       auto stepStageBtn = std::make_unique<Button>("Stage", m_font);
       stepStageBtn->setPosition(710.f, 15.f);
@@ -218,12 +218,13 @@ namespace ez_arch {
     m_window.draw(mainArea);
     
     // Draw the datapath diagram
-    m_datapathView->setPosition(LEFT_SIDEBAR_WIDTH + 50.f, TOP_BAR_HEIGHT + 50.f);
+    m_datapathView->setPosition(LEFT_SIDEBAR_WIDTH, TOP_BAR_HEIGHT);
     m_datapathView->setSize(
-      windowSize.x - LEFT_SIDEBAR_WIDTH - 100.f,
-      windowSize.y - TOP_BAR_HEIGHT - 100.f
+      windowSize.x - LEFT_SIDEBAR_WIDTH,
+      windowSize.y - TOP_BAR_HEIGHT
     );
     m_datapathView->draw(m_window);
+    m_datapathView->drawScaffolding(m_window, mainArea.getSize());
   }
   
   void CPUVisualizer::drawActiveView() {
