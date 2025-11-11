@@ -99,31 +99,31 @@ public:
     void reset();
     
     // Step-by-step execution (for educational purposes)
-    ExecutionStage get_current_stage() const { return current_stage_; }
+    ExecutionStage get_current_stage() const { return m_currentStage; }
     void step_stage(); // Execute one pipeline stage
     
     // State access
-    const RegisterFile& get_registers() const { return registers_; }
-    RegisterFile& get_registers() { return registers_; }
-    const Memory& get_memory() const { return memory_; }
-    Memory& get_memory() { return memory_; }
-    bool is_halted() const { return halted_; }
+    const RegisterFile& get_registers() const { return m_registers; }
+    RegisterFile& get_registers() { return m_registers; }
+    const Memory& get_memory() const { return m_memory; }
+    Memory& get_memory() { return m_memory; }
+    bool is_halted() const { return m_halted; }
     
     // Callbacks for visualization
     using StageCallback = std::function<void(ExecutionStage)>;
-    void set_stage_callback(StageCallback callback) { stage_callback_ = callback; }
+    void set_stage_callback(StageCallback callback) { m_stageCallback = callback; }
     
 private:
-    RegisterFile registers_;
-    Memory memory_;
+    RegisterFile m_registers;
+    Memory m_memory;
     
-    Instruction current_instruction_;
-    ExecutionStage current_stage_;
-    bool halted_;
+    Instruction m_currentInstruction;
+    ExecutionStage m_currentStage;
+    bool m_halted;
     
-    StageCallback stage_callback_;
+    StageCallback m_stageCallback;
     
-    PipelineRegisters pipeline_;
+    PipelineRegisters m_pipeline;
 
     void clear_pipeline();
     ControlSignals generate_control_signals(uint8_t opcode);
@@ -133,7 +133,7 @@ private:
     void fetch();
     void decode();
     void execute();
-    void memory_access();
+    void m_memoryaccess();
     void write_back();
     
     // Instruction execution

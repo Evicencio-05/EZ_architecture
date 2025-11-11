@@ -14,15 +14,15 @@ public:
     void reset();
     
     // Special registers
-    word_t get_pc() const { return pc_; }
-    void set_pc(word_t value) { pc_ = value; }
-    void increment_pc() { pc_ += 4; }
+    word_t get_pc() const { return m_pc; }
+    void set_pc(word_t value) { m_pc = value; }
+    void increment_pc() { m_pc += 4; }
     
     static constexpr size_t NUM_REGISTERS = 32;
     
 private:
-    std::array<word_t, NUM_REGISTERS> registers_;
-    word_t pc_; // Program counter
+    std::array<word_t, NUM_REGISTERS> m_registers;
+    word_t m_pc; // Program counter
 };
 
 } // namespace ez_arch

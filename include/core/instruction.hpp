@@ -25,11 +25,11 @@ public:
     // J-type fields
     uint32_t get_address() const;
     
-    word_t get_raw() const { return raw_; }
+    word_t get_raw() const { return m_raw; }
     std::string to_string() const;
     
 private:
-    word_t raw_;
+    word_t m_raw;
 };
 
 } // namespace ez_arch

@@ -6,81 +6,81 @@
 
 namespace ez_arch {
 
-CPU::CPU() : current_instruction_(0), current_stage_(ExecutionStage::FETCH), halted_(false) {
-  pipeline_.clear();
+CPU::CPU() : m_currentInstruction(0), m_currentStage(ExecutionStage::FETCH), m_halted(false) {
+  m_pipeline.clear();
 }
 
 void CPU::clear_pipeline() {
-  pipeline_.clear();
+  m_pipeline.clear();
 }
 
 void CPU::load_program(const std::vector<word_t>& program) {
-  memory_.load_program(program, 0);
-  registers_.set_pc(0);
-  halted_ = false;
+  m_memory.load_program(program, 0);
+  m_registers.set_pc(0);
+  m_halted = false;
 }
 
 void CPU::step() {
-  if (halted_) return;
+  if (m_halted) return;
   
   // Ensure we start from FETCH stage
-  while (current_stage_ != ExecutionStage::FETCH) {
+  while (m_currentStage != ExecutionStage::FETCH) {
     step_stage();
   }
 
   fetch();
   
   // Check halt condition after fetch
-  if (current_instruction_.get_raw() == 0) {
-    halted_ = true;
+  if (m_currentInstruction.get_raw() == 0) {
+    m_halted = true;
     return;
   }
   
   decode();
   execute();
-  memory_access();
+  m_memoryaccess();
   write_back();
 }
 
 void CPU::run() {
-  while(!halted_) {
+  while(!m_halted) {
     step();
   }
 }
 
 void CPU::reset() {
-  registers_.reset();
-  memory_.reset();
-  current_stage_ = ExecutionStage::FETCH;
-  halted_ = false;
+  m_registers.reset();
+  m_memory.reset();
+  m_currentStage = ExecutionStage::FETCH;
+  m_halted = false;
   clear_pipeline();
 }
 
 void CPU::step_stage() {
-  if (halted_) return;
+  if (m_halted) return;
 
-  if (stage_callback_) stage_callback_(current_stage_);
+  if (m_stageCallback) m_stageCallback(m_currentStage);
 
-  switch (current_stage_) {
+  switch (m_currentStage) {
     case ExecutionStage::FETCH:
       fetch();
-      current_stage_ = ExecutionStage::DECODE;
+      m_currentStage = ExecutionStage::DECODE;
       break;
     case ExecutionStage::DECODE:
       decode();
-      current_stage_ = ExecutionStage::EXECUTE;
+      m_currentStage = ExecutionStage::EXECUTE;
       break;
     case ExecutionStage::EXECUTE:
       execute();
-      current_stage_ = ExecutionStage::MEMORY_ACCESS;
+      m_currentStage = ExecutionStage::MEMORY_ACCESS;
       break;
     case ExecutionStage::MEMORY_ACCESS:
-      memory_access();
-      current_stage_ = ExecutionStage::WRITE_BACK;
+      m_memoryaccess();
+      m_currentStage = ExecutionStage::WRITE_BACK;
       break;
     case ExecutionStage::WRITE_BACK:
       write_back();
-      current_stage_ = ExecutionStage::FETCH;
+      m_currentStage = ExecutionStage::FETCH;
       break;
   }
 }
@@ -168,110 +168,110 @@ ALUOperation CPU::alu_control(uint8_t ALUOp, uint8_t funct) {
 
 // Pipeline stages
 void CPU::fetch() {
-  word_t pc = registers_.get_pc();
-  word_t instruction_word = memory_.read_word(pc);
-  current_instruction_ = Instruction(instruction_word);
+  word_t pc = m_registers.get_pc();
+  word_t instruction_word = m_memory.read_word(pc);
+  m_currentInstruction = Instruction(instruction_word);
 }
 
 void CPU::decode() {
-  pipeline_.rs = current_instruction_.get_rs();
-  pipeline_.rt = current_instruction_.get_rt();
-  pipeline_.rd = current_instruction_.get_rd();
-  pipeline_.funct = current_instruction_.get_funct();
-  pipeline_.immediate = current_instruction_.get_immediate();
+  m_pipeline.rs = m_currentInstruction.get_rs();
+  m_pipeline.rt = m_currentInstruction.get_rt();
+  m_pipeline.rd = m_currentInstruction.get_rd();
+  m_pipeline.funct = m_currentInstruction.get_funct();
+  m_pipeline.immediate = m_currentInstruction.get_immediate();
 
-  pipeline_.read_data_1 = registers_.read(pipeline_.rs);
-  pipeline_.read_data_2 = registers_.read(pipeline_.rt);
+  m_pipeline.read_data_1 = m_registers.read(m_pipeline.rs);
+  m_pipeline.read_data_2 = m_registers.read(m_pipeline.rt);
 
-  pipeline_.control = generate_control_signals(current_instruction_.get_opcode());
+  m_pipeline.control = generate_control_signals(m_currentInstruction.get_opcode());
 }
 
 void CPU::execute() {
   word_t alu_input_2;
-  uint8_t opcode = current_instruction_.get_opcode();
+  uint8_t opcode = m_currentInstruction.get_opcode();
   ALUOperation alu_op;
   
-  if (pipeline_.control.ALUSrc) {
+  if (m_pipeline.control.ALUSrc) {
     // Use sign-extended immediate
-    alu_input_2 = static_cast<word_t>(static_cast<int32_t>(pipeline_.immediate));
+    alu_input_2 = static_cast<word_t>(static_cast<int32_t>(m_pipeline.immediate));
 
     if (opcode == Opcode::ANDI || opcode == Opcode::ORI) {
       alu_op = (opcode == Opcode::ANDI) ? ALUOperation::AND : ALUOperation::OR;
-      alu_input_2 = static_cast<word_t>(pipeline_.immediate) & 0xFFFF;
+      alu_input_2 = static_cast<word_t>(m_pipeline.immediate) & 0xFFFF;
     } else {
-      alu_op = alu_control(pipeline_.control.ALUOp, pipeline_.funct);
+      alu_op = alu_control(m_pipeline.control.ALUOp, m_pipeline.funct);
     }
   } else {
     // Use register value
-    alu_input_2 = pipeline_.read_data_2;
-    alu_op = alu_control(pipeline_.control.ALUOp, pipeline_.funct);
+    alu_input_2 = m_pipeline.read_data_2;
+    alu_op = alu_control(m_pipeline.control.ALUOp, m_pipeline.funct);
   }
   
   // Execute ALU operation
-  ALU::Result result = ALU::execute(alu_op, pipeline_.read_data_1, alu_input_2);
-  pipeline_.alu_result = result.value;
-  pipeline_.zero_flag = result.zero;
+  ALU::Result result = ALU::execute(alu_op, m_pipeline.read_data_1, alu_input_2);
+  m_pipeline.alu_result = result.value;
+  m_pipeline.zero_flag = result.zero;
 
-  pipeline_.write_reg = pipeline_.control.RegDst ? pipeline_.rd : pipeline_.rt;
-  pipeline_.mem_write_data = pipeline_.read_data_2;
+  m_pipeline.write_reg = m_pipeline.control.RegDst ? m_pipeline.rd : m_pipeline.rt;
+  m_pipeline.mem_write_data = m_pipeline.read_data_2;
   
-  word_t pc = registers_.get_pc();
+  word_t pc = m_registers.get_pc();
 
-  if (pipeline_.control.Branch) {
+  if (m_pipeline.control.Branch) {
     bool take_branch = false;
 
     if (opcode == Opcode::BEQ) {
-      take_branch = pipeline_.zero_flag;
+      take_branch = m_pipeline.zero_flag;
     } else if (opcode == Opcode::BNE) {
-      take_branch = !pipeline_.zero_flag;
+      take_branch = !m_pipeline.zero_flag;
     }
 
     if (take_branch) {
-      word_t sign_extended_imm = static_cast<word_t>(static_cast<int32_t>(pipeline_.immediate));
-      registers_.set_pc(pc + (sign_extended_imm << 2));
+      word_t sign_extended_imm = static_cast<word_t>(static_cast<int32_t>(m_pipeline.immediate));
+      m_registers.set_pc(pc + (sign_extended_imm << 2));
     }
   }
 
-  if (pipeline_.control.Jump) {
-    address_t addr = current_instruction_.get_address();
+  if (m_pipeline.control.Jump) {
+    address_t addr = m_currentInstruction.get_address();
     word_t jump_addr = ((pc + 4) & 0xF0000000) | (addr << 2);
 
     if (opcode == Opcode::JAL) {
-      pipeline_.wb_data = pc + 4;
-      pipeline_.write_reg = 31; // $ra
+      m_pipeline.wb_data = pc + 4;
+      m_pipeline.write_reg = 31; // $ra
     }
 
-    registers_.set_pc(jump_addr - 4);
+    m_registers.set_pc(jump_addr - 4);
   }
 
 }
 
-void CPU::memory_access() {
-  if (pipeline_.control.MemRead) {
-    pipeline_.mem_read_data = memory_.read_word(pipeline_.alu_result);
+void CPU::m_memoryaccess() {
+  if (m_pipeline.control.MemRead) {
+    m_pipeline.mem_read_data = m_memory.read_word(m_pipeline.alu_result);
   }
 
-  if (pipeline_.control.MemWrite) {
-    memory_.write_word(pipeline_.alu_result, pipeline_.mem_write_data);
+  if (m_pipeline.control.MemWrite) {
+    m_memory.write_word(m_pipeline.alu_result, m_pipeline.mem_write_data);
   }
 }
 
 void CPU::write_back() {
-  if (pipeline_.control.RegWrite) {
+  if (m_pipeline.control.RegWrite) {
     word_t write_data;
-    if (pipeline_.control.MemToReg) {
-      write_data = pipeline_.mem_read_data;
-    } else if (pipeline_.control.Jump && current_instruction_.get_opcode() == Opcode::JAL) {
-      write_data = pipeline_.wb_data;
+    if (m_pipeline.control.MemToReg) {
+      write_data = m_pipeline.mem_read_data;
+    } else if (m_pipeline.control.Jump && m_currentInstruction.get_opcode() == Opcode::JAL) {
+      write_data = m_pipeline.wb_data;
     } else {
-      write_data = pipeline_.alu_result;
+      write_data = m_pipeline.alu_result;
     }
 
-    registers_.write(pipeline_.write_reg, write_data);
+    m_registers.write(m_pipeline.write_reg, write_data);
   }
 
-  registers_.increment_pc();
+  m_registers.increment_pc();
 
-  pipeline_.clear();
+  m_pipeline.clear();
 }
 } // namespace ez_arch
