@@ -41,6 +41,7 @@ add_executable(ez_architecture_gui
     gui/register_view.cpp
     gui/memory_view.cpp
     gui/instruction_view.cpp
+    gui/datapath_view.cpp
     gui/button.cpp
 )
 
