@@ -9,69 +9,77 @@
 namespace ez_arch {
 
   CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window) :
-    cpu_(cpu), window_(window) {
+    m_cpu(cpu), m_window(window) {
 
       if (!loadFont()) {
         std::cerr << "Warning: Could not load font. Text will not display.\n";
       }
       
       // Initialize view state
-      activeView_ = ActiveView::NONE;
+      m_activeView = ActiveView::NONE;
       
       // Create the register view
-      registerView_ = std::make_unique<RegisterView>(cpu_.get_registers(), font_);
-      registerView_->setPosition(LEFT_SIDEBAR_WIDTH + 20.f, TOP_BAR_HEIGHT + 20.f);
+      m_registerView = std::make_unique<RegisterView>(m_cpu.get_registers(), m_font);
+      m_registerView->setPosition(LEFT_SIDEBAR_WIDTH + 20.f, TOP_BAR_HEIGHT + 20.f);
       
       // Create the memory view
-      memoryView_ = std::make_unique<MemoryView>(cpu_.get_memory(), cpu_.get_registers(), font_);
-      memoryView_->setPosition(LEFT_SIDEBAR_WIDTH + 20.f, TOP_BAR_HEIGHT + 20.f);
-      memoryView_->setDisplayRange(0, 16);
+      m_memoryView = std::make_unique<MemoryView>(m_cpu.get_memory(), m_cpu.get_registers(), m_font);
+      m_memoryView->setPosition(LEFT_SIDEBAR_WIDTH + 20.f, TOP_BAR_HEIGHT + 20.f);
+      m_memoryView->setDisplayRange(0, 16);
       
       // Create the instruction view
-      instructionView_ = std::make_unique<InstructionView>(cpu_.get_memory(), cpu_.get_registers(), font_);
-      instructionView_->setPosition(LEFT_SIDEBAR_WIDTH + 20.f, TOP_BAR_HEIGHT + 20.f);
-      instructionView_->setDisplayRange(0, 16);
+      m_instructionView = std::make_unique<InstructionView>(m_cpu.get_memory(), m_cpu.get_registers(), m_font);
+      m_instructionView->setPosition(LEFT_SIDEBAR_WIDTH + 20.f, TOP_BAR_HEIGHT + 20.f);
+      m_instructionView->setDisplayRange(0, 16);
+      
+      // Create the datapath view for main area
+      m_datapathView = std::make_unique<DatapathView>(m_cpu, m_font);
       
       // Create control buttons - positioned in top bar
-      auto stepBtn = std::make_unique<Button>("Step", font_);
+      auto stepStageBtn = std::make_unique<Button>("Stage", m_font);
+      stepStageBtn->setPosition(710.f, 15.f);
+      stepStageBtn->setCallback([this]() { m_cpu.step_stage(); });
+      m_buttons.push_back(std::move(stepStageBtn));
+      
+      auto stepBtn = std::make_unique<Button>("Step", m_font);
       stepBtn->setPosition(800.f, 15.f);
-      stepBtn->setCallback([this]() { cpu_.step(); });
-      buttons_.push_back(std::move(stepBtn));
+      stepBtn->setCallback([this]() { m_cpu.step(); });
+      m_buttons.push_back(std::move(stepBtn));
       
-      auto runBtn = std::make_unique<Button>("Run", font_);
+      auto runBtn = std::make_unique<Button>("Run", m_font);
       runBtn->setPosition(890.f, 15.f);
-      runBtn->setCallback([this]() { cpu_.run(); });
-      buttons_.push_back(std::move(runBtn));
+      runBtn->setCallback([this]() { m_cpu.run(); });
+      m_buttons.push_back(std::move(runBtn));
       
-      auto resetBtn = std::make_unique<Button>("Reset", font_);
+      auto resetBtn = std::make_unique<Button>("Reset", m_font);
       resetBtn->setPosition(980.f, 15.f);
-      resetBtn->setCallback([this]() { cpu_.reset(); });
-      buttons_.push_back(std::move(resetBtn));
+      resetBtn->setCallback([this]() { m_cpu.reset(); });
+      m_buttons.push_back(std::move(resetBtn));
       
       // Create toggle buttons - positioned in left sidebar
-      auto regToggle = std::make_unique<Button>("R", font_);
+      auto regToggle = std::make_unique<Button>("R", m_font);
       regToggle->setPosition(5.f, TOP_BAR_HEIGHT + 10.f);
       regToggle->setSize(TOGGLE_BUTTON_SIZE, TOGGLE_BUTTON_SIZE);
       regToggle->setCallback([this]() { 
-        activeView_ = (activeView_ == ActiveView::REGISTERS) ? ActiveView::NONE : ActiveView::REGISTERS; 
+        m_activeView = (m_activeView == ActiveView::REGISTERS) ? ActiveView::NONE : ActiveView::REGISTERS; 
       });
-      buttons_.push_back(std::move(regToggle));
+      m_buttons.push_back(std::move(regToggle));
       
-      auto memToggle = std::make_unique<Button>("M", font_);
+      auto memToggle = std::make_unique<Button>("M", m_font);
       memToggle->setPosition(5.f, TOP_BAR_HEIGHT + 70.f);
       memToggle->setSize(TOGGLE_BUTTON_SIZE, TOGGLE_BUTTON_SIZE);
       memToggle->setCallback([this]() { 
-        activeView_ = (activeView_ == ActiveView::MEMORY) ? ActiveView::NONE : ActiveView::MEMORY; 
+        m_activeView = (m_activeView == ActiveView::MEMORY) ? ActiveView::NONE : ActiveView::MEMORY; 
       });
-      buttons_.push_back(std::move(memToggle));
+      m_buttons.push_back(std::move(memToggle));
       
-      auto instToggle = std::make_unique<Button>("I", font_);
+      auto instToggle = std::make_unique<Button>("I", m_font);
       instToggle->setPosition(5.f, TOP_BAR_HEIGHT + 130.f);
       instToggle->setSize(TOGGLE_BUTTON_SIZE, TOGGLE_BUTTON_SIZE);
       instToggle->setCallback([this]() { 
-        activeView_ = (activeView_ == ActiveView::INSTRUCTIONS) ? ActiveView::NONE : ActiveView::INSTRUCTIONS; 
+        m_activeView = (m_activeView == ActiveView::INSTRUCTIONS) ? ActiveView::NONE : ActiveView::INSTRUCTIONS; 
       });
-      buttons_.push_back(std::move(instToggle));
+      m_buttons.push_back(std::move(instToggle));
   }
 
   bool CPUVisualizer::loadFont() {
@@ -85,7 +93,7 @@ namespace ez_arch {
     };
 
     for (const char* path : fontPaths) {
-      if (font_.openFromFile(path)) {
+      if (m_font.openFromFile(path)) {
         std::cout << "Loaded font from: " << path << "\n";
         return true;
       }
@@ -97,9 +105,10 @@ namespace ez_arch {
 
   void CPUVisualizer::update() {
     // Update all view components
-    registerView_->update();
-    memoryView_->update();
-    instructionView_->update();
+    m_registerView->update();
+    m_memoryView->update();
+    m_instructionView->update();
+    m_datapathView->update();
   }
 
   void CPUVisualizer::draw() {
@@ -110,44 +119,44 @@ namespace ez_arch {
     drawActiveView();
     
     // Draw buttons
-    for (auto& btn : buttons_) {
-      btn->draw(window_);
+    for (auto& btn : m_buttons) {
+      btn->draw(m_window);
     }
   }
 
   void CPUVisualizer::drawPipelineStage() {
     // Compact version for top bar
-    ExecutionStage stage = cpu_.get_current_stage();
+    ExecutionStage stage = m_cpu.get_current_stage();
     std::string stageText = std::string(stageToString(stage));
     
-    sf::Text stageDisplay(font_);
+    sf::Text stageDisplay(m_font);
     stageDisplay.setString(stageText);
     stageDisplay.setCharacterSize(16);
     stageDisplay.setFillColor(TITLE_TEXT_COLOR);
     stageDisplay.setPosition({20.f, 20.f});
-    window_.draw(stageDisplay);
+    m_window.draw(stageDisplay);
   }
   
   void CPUVisualizer::handleMouseMove(float x, float y) {
-    for (auto& btn : buttons_) {
+    for (auto& btn : m_buttons) {
       btn->handleMouseMove(x, y);
     }
   }
   
   void CPUVisualizer::handleMousePress(float x, float y) {
-    for (auto& btn : buttons_) {
+    for (auto& btn : m_buttons) {
       btn->handleMousePress(x, y);
     }
   }
   
   void CPUVisualizer::handleMouseRelease(float x, float y) {
-    for (auto& btn : buttons_) {
+    for (auto& btn : m_buttons) {
       btn->handleMouseRelease(x, y);
     }
   }
   
   void CPUVisualizer::drawTopBar() {
-    auto windowSize = window_.getSize();
+    auto windowSize = m_window.getSize();
     
     // Draw top bar background
     sf::RectangleShape topBar({static_cast<float>(windowSize.x), TOP_BAR_HEIGHT});
@@ -155,36 +164,36 @@ namespace ez_arch {
     topBar.setFillColor(VIEW_BOX_BACKGROUND_COLOR);
     topBar.setOutlineColor(VIEW_BOX_OUTLINE_COLOR);
     topBar.setOutlineThickness(2.f);
-    window_.draw(topBar);
+    m_window.draw(topBar);
     
     // Draw pipeline stage (compact version)
     drawPipelineStage();
     
     // Draw PC info
-    sf::Text pcText(font_);
+    sf::Text pcText(m_font);
     std::ostringstream pcStream;
-    pcStream << "PC: 0x" << std::hex << std::setw(8) << std::setfill('0') << cpu_.get_registers().get_pc();
+    pcStream << "PC: 0x" << std::hex << std::setw(8) << std::setfill('0') << m_cpu.get_registers().get_pc();
     pcText.setString(pcStream.str());
     pcText.setCharacterSize(16);
     pcText.setFillColor(TITLE_TEXT_COLOR);
     pcText.setPosition({300.f, 20.f});
-    window_.draw(pcText);
+    m_window.draw(pcText);
     
     // Draw current instruction
-    word_t pc = cpu_.get_registers().get_pc();
-    word_t instr = cpu_.get_memory().read_word(pc);
+    word_t pc = m_cpu.get_registers().get_pc();
+    word_t instr = m_cpu.get_memory().read_word(pc);
     std::string decoded = Decoder::decode(instr);
     
-    sf::Text instrText(font_);
+    sf::Text instrText(m_font);
     instrText.setString("Instruction: " + decoded);
     instrText.setCharacterSize(16);
     instrText.setFillColor(TITLE_TEXT_COLOR);
     instrText.setPosition({500.f, 20.f});
-    window_.draw(instrText);
+    m_window.draw(instrText);
   }
   
   void CPUVisualizer::drawLeftSidebar() {
-    auto windowSize = window_.getSize();
+    auto windowSize = m_window.getSize();
     
     // Draw sidebar background
     sf::RectangleShape sidebar({
@@ -193,11 +202,11 @@ namespace ez_arch {
     });
     sidebar.setPosition({0, TOP_BAR_HEIGHT});
     sidebar.setFillColor(VIEW_BOX_BACKGROUND_COLOR);
-    window_.draw(sidebar);
+    m_window.draw(sidebar);
   }
   
   void CPUVisualizer::drawMainArea() {
-    auto windowSize = window_.getSize();
+    auto windowSize = m_window.getSize();
     
     // Draw main area background
     sf::RectangleShape mainArea({
@@ -205,29 +214,29 @@ namespace ez_arch {
       static_cast<float>(windowSize.y - TOP_BAR_HEIGHT)
     });
     mainArea.setPosition({LEFT_SIDEBAR_WIDTH, TOP_BAR_HEIGHT});
-    mainArea.setFillColor(sf::Color(30, 30, 40));
-    window_.draw(mainArea);
+    mainArea.setFillColor(DATA_PATH_BACKGROUND_COLOR);
+    m_window.draw(mainArea);
     
-    // Draw placeholder text
-    sf::Text placeholder(font_);
-    placeholder.setString("Datapath Visualization Area\n(Future: Interactive CPU Diagram)");
-    placeholder.setCharacterSize(24);
-    placeholder.setFillColor(sf::Color(100, 100, 100));
-    placeholder.setPosition({LEFT_SIDEBAR_WIDTH + 200.f, TOP_BAR_HEIGHT + 200.f});
-    window_.draw(placeholder);
+    // Draw the datapath diagram
+    m_datapathView->setPosition(LEFT_SIDEBAR_WIDTH + 50.f, TOP_BAR_HEIGHT + 50.f);
+    m_datapathView->setSize(
+      windowSize.x - LEFT_SIDEBAR_WIDTH - 100.f,
+      windowSize.y - TOP_BAR_HEIGHT - 100.f
+    );
+    m_datapathView->draw(m_window);
   }
   
   void CPUVisualizer::drawActiveView() {
     // Draw the selected view on top of the main area
-    switch (activeView_) {
+    switch (m_activeView) {
       case ActiveView::REGISTERS:
-        registerView_->draw(window_);
+        m_registerView->draw(m_window);
         break;
       case ActiveView::MEMORY:
-        memoryView_->draw(window_);
+        m_memoryView->draw(m_window);
         break;
       case ActiveView::INSTRUCTIONS:
-        instructionView_->draw(window_);
+        m_instructionView->draw(m_window);
         break;
       case ActiveView::NONE:
         // Nothing to draw

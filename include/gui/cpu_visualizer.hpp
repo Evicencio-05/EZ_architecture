@@ -5,6 +5,7 @@
 #include "gui/register_view.hpp"
 #include "gui/memory_view.hpp"
 #include "gui/instruction_view.hpp"
+#include "gui/datapath_view.hpp"
 #include "gui/button.hpp"
 #include <memory>
 #include <vector>
@@ -24,9 +25,9 @@ namespace ez_arch {
     void handleMouseRelease(float x, float y);
 
   private:
-    CPU& cpu_;
-    sf::RenderWindow& window_;
-    sf::Font font_;
+    CPU& m_cpu;
+    sf::RenderWindow& m_window;
+    sf::Font m_font;
     
     // Layout helpers
     void drawTopBar();
@@ -35,16 +36,17 @@ namespace ez_arch {
     void drawActiveView();
     
     // View components
-    std::unique_ptr<RegisterView> registerView_;
-    std::unique_ptr<MemoryView> memoryView_;
-    std::unique_ptr<InstructionView> instructionView_;
+    std::unique_ptr<RegisterView> m_registerView;
+    std::unique_ptr<MemoryView> m_memoryView;
+    std::unique_ptr<InstructionView> m_instructionView;
+    std::unique_ptr<DatapathView> m_datapathView;
     
     // Control buttons
-    std::vector<std::unique_ptr<Button>> buttons_;
+    std::vector<std::unique_ptr<Button>> m_buttons;
     
     // View state
     enum class ActiveView { NONE, REGISTERS, MEMORY, INSTRUCTIONS };
-    ActiveView activeView_;
+    ActiveView m_activeView;
   
     void drawPipelineStage();
     bool loadFont();
