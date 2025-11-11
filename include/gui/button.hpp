@@ -24,13 +24,13 @@ public:
     void draw(sf::RenderWindow& window);
     
 private:
-    sf::RectangleShape shape_;
-    sf::Font& font_;           // Must be declared BEFORE text_
-    sf::Text text_;            // Since text_ uses font_ in constructor
-    Callback callback_;
+    sf::RectangleShape m_shape;
+    sf::Font& m_font;           // Must be declared BEFORE m_text
+    sf::Text m_text;            // Since m_text uses m_font in constructor
+    Callback m_callback;
     
-    bool isHovered_;
-    bool isPressed_;
+    bool m_isHovered;
+    bool m_isPressed;
     
     bool contains(float x, float y) const;
     void updateColor();

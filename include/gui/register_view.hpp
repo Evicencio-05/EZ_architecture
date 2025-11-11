@@ -19,10 +19,10 @@ public:
     void draw(sf::RenderWindow& window);
     
 private:
-    const RegisterFile& registers_;
-    sf::Font& font_;
-    float x_;
-    float y_;
+    const RegisterFile& m_registers;
+    sf::Font& m_font;
+    float m_x;
+    float m_y;
     
     // Drawing helpers
     void drawRegister(sf::RenderWindow& window, int regNum, float rowY);

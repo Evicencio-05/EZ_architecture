@@ -8,6 +8,7 @@ namespace ez_arch {
   constexpr sf::Color VIEW_BOX_BACKGROUND_COLOR(220, 220, 220);
   constexpr sf::Color VIEW_BOX_OUTLINE_COLOR(sf::Color::Black);
   constexpr float VIEW_BOX_OUTLINE_THICKNESS = 2.f;
+  constexpr sf::Color DATA_PATH_BACKGROUND_COLOR(230, 230, 230);
 
   // Text colors
   constexpr sf::Color TITLE_TEXT_COLOR(sf::Color::Black);

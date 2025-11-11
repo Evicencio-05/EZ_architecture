@@ -23,15 +23,15 @@ public:
     void setDisplayRange(address_t startAddr, size_t numWords);
     
 private:
-    const Memory& memory_;
-    const RegisterFile& registers_;  // To get PC for highlighting
-    sf::Font& font_;
-    float x_;
-    float y_;
+    const Memory& m_memory;
+    const RegisterFile& m_registers;  // To get PC for highlighting
+    sf::Font& m_font;
+    float m_x;
+    float m_y;
     
     // Display settings
-    address_t startAddr_;    // Starting address to display
-    size_t numWords_;        // Number of words to display
+    address_t m_startAddr;    // Starting address to display
+    size_t m_numWords;        // Number of words to display
     
     // Drawing helpers
     void drawHeader(sf::RenderWindow& window);

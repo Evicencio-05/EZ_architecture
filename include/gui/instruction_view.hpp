@@ -25,15 +25,15 @@ public:
     void setDisplayRange(address_t startAddr, size_t numInstructions);
     
 private:
-    const Memory& memory_;
-    const RegisterFile& registers_;  // To get PC for highlighting
-    sf::Font& font_;
-    float x_;
-    float y_;
+    const Memory& m_memory;
+    const RegisterFile& m_registers;  // To get PC for highlighting
+    sf::Font& m_font;
+    float m_x;
+    float m_y;
     
     // Display settings
-    address_t startAddr_;
-    size_t numInstructions_;
+    address_t m_startAddr;
+    size_t m_numInstructions;
     
     // Drawing helpers
     void drawHeader(sf::RenderWindow& window);
