@@ -7,8 +7,45 @@ namespace ez_arch {
 
 DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     : m_cpu(cpu), m_font(font), m_x(0.f), m_y(0.f), m_width(800.f), m_height(600.f) {
+
+    m_signExt     = std::make_unique<EllipseShape>();
+    m_ALUControl  = std::make_unique<EllipseShape>();
+    m_jumpSL      = std::make_unique<EllipseShape>();
+    m_branchSL    = std::make_unique<EllipseShape>();
+
     calculateLayout();
     setupWires();
+
+    m_pcBox.label = "PC";
+
+    m_instructionMemory.label = "Instruction\n Memory";
+    m_instructionMemory.inputs.push_back("Read\nAddress");
+    m_instructionMemory.inputs.push_back("");
+    m_instructionMemory.outputs[1] = "Instructions\n   [31-0]";
+
+    m_registers.label = "\nRegisters";
+    m_registers.inputs.push_back("Read\nRegister 1");
+    m_registers.inputs.push_back("Read\nRegister 2");
+    m_registers.inputs.push_back("Write\nRegister");
+    m_registers.inputs.push_back("Write\nData");
+    m_registers.outputs[0] = "        Read\n        Data 1";
+    m_registers.outputs[2] = "        Read\n        Data 2";
+
+    m_dataMemory.label = "     Data\n   Memory";
+    m_dataMemory.inputs.push_back("");
+    m_dataMemory.inputs.push_back("Address");
+    m_dataMemory.inputs.push_back("");
+    m_dataMemory.inputs.push_back("Write\nData");
+    m_dataMemory.outputs[1] = "        Read\n        Data";
+
+    m_signExt->setLabel(" Sign\nExtend");
+    
+    m_ALUControl->setLabel("  ALU\nControl");
+
+    m_jumpSL->setLabel(" Shift\nLeft 2");
+
+    m_branchSL->setLabel(" Shift\nLeft 2");
+
 }
 
 void DatapathView::setPosition(float x, float y) {
@@ -49,10 +86,29 @@ void DatapathView::drawScaffolding(sf::RenderWindow& window, sf::Vector2f mainAr
 
 void DatapathView::calculateLayout() {
     // Layout the datapath components in a logical flow (left to right)
-    m_pcBox.position = {m_x, m_y + 400.f};
-    m_pcBox.size = {60.f, 40.f};
-    m_pcBox.label = "PC";
+    m_pcBox.position = {m_x + 100.f, m_y + 500.f};
+    m_pcBox.size = {50.f, 100.f};
 
+    m_instructionMemory.position = {m_x + 250.f, m_y + 500.f};
+    m_instructionMemory.size = {150.f, 150.f};
+
+    m_registers.position = {m_x + 750.f, m_y + 500.f};
+    m_registers.size = {150.f, 250.f};
+
+    m_dataMemory.position = {m_x + 1300.f, m_y + 550.f};
+    m_dataMemory.size = {150.f, 200.f};
+
+    m_signExt->setRadius(sf::Vector2f(50.f, 50.f));
+    m_signExt->setPosition(sf::Vector2f(m_x + 800.f, m_y + 800.f));
+    
+    m_ALUControl->setRadius(sf::Vector2f(50.f, 50.f));
+    m_ALUControl->setPosition(sf::Vector2f(m_x + 1100.f, m_y + 800.f));
+
+    m_jumpSL->setRadius(sf::Vector2f(25.f, 25.f));
+    m_jumpSL->setPosition(sf::Vector2f(m_x + 500.f, m_y + 50.f));
+
+    m_branchSL->setRadius(sf::Vector2f(25.f, 25.f));
+    m_branchSL->setPosition(sf::Vector2f(m_x + 1000.f, m_y + 150.f));
 }
 
 void DatapathView::setupWires() {
@@ -70,8 +126,15 @@ void DatapathView::draw(sf::RenderWindow& window) {
     // }
     
     // Draw all major components
-    drawComponentBox(window, m_pcBox, sf::Color(100, 150, 200));
+    drawComponentBox(window, m_pcBox, sf::Color::White);
+    drawComponentBox(window, m_instructionMemory, sf::Color::White);
+    drawComponentBox(window, m_registers, sf::Color::White);
+    drawComponentBox(window, m_dataMemory, sf::Color::White);
     
+    drawEllipse(window, m_signExt, sf::Color::White);
+    drawEllipse(window, m_ALUControl, sf::Color::White);
+    drawEllipse(window, m_jumpSL, sf::Color::White);
+    drawEllipse(window, m_branchSL, sf::Color::White);
     // Draw wire labels on top of everything
     // for (const auto& wire : m_wires) {
     //     if (!wire.label.empty()) {
@@ -85,27 +148,63 @@ void DatapathView::drawComponentBox(sf::RenderWindow& window, const ComponentBox
     sf::RectangleShape rect(box.size);
     rect.setPosition(box.position);
     rect.setFillColor(color);
-    rect.setOutlineColor(sf::Color::White);
-    rect.setOutlineThickness(2.f);
+    rect.setOutlineColor(sf::Color::Black);
+    rect.setOutlineThickness(1.f);
     window.draw(rect);
     
     // Draw label
     sf::Text label(m_font);
     label.setString(box.label);
-    label.setCharacterSize(12);
-    label.setFillColor(sf::Color::White);
+    label.setFillColor(sf::Color::Black);
     
     // Center the label in the box
-    sf::FloatRect textBounds = label.getLocalBounds();
-    label.setOrigin({
-        textBounds.position.x + textBounds.size.x / 2.0f,
-        textBounds.position.y + textBounds.size.y / 2.0f
-    });
-    label.setPosition({
-        box.position.x + box.size.x / 2.0f,
-        box.position.y + box.size.y / 2.0f
-    });
+    if (box.inputs.size() == 0) {
+      label.setCharacterSize(22);
+      centerText(label);
+      label.setPosition(box.getCenter());
+      window.draw(label);
+      return;
+    }
+    
+    label.setCharacterSize(15);
+    label.setPosition(box.getRight(3, static_cast<float>(label.getCharacterSize())));
     window.draw(label);
+
+    size_t inputsSize = box.inputs.size();
+    for (size_t i = 0; i < inputsSize; ++i) {
+      sf::Text input(m_font);
+      input.setString(box.inputs[i]);
+      input.setFillColor(sf::Color::Black);
+      input.setCharacterSize(12);
+      input.setPosition(box.getLeft(i, input.getCharacterSize()));
+      window.draw(input);
+    }
+
+    size_t outputsSize = box.outputs.size();
+    for (size_t i = 0; i < outputsSize; ++i) {
+      sf::Text output(m_font);
+      output.setString(box.outputs[i]);
+      output.setFillColor(sf::Color::Black);
+      output.setCharacterSize(12);
+      output.setPosition(box.getRight(i, static_cast<float>(output.getCharacterSize()), 10.f));
+      window.draw(output);
+    }
+}
+
+void DatapathView::drawEllipse(sf::RenderWindow& window, std::unique_ptr<EllipseShape>& circle, sf::Color color) {
+    circle->setFillColor(color);
+    circle->setOutlineColor(sf::Color::Black);
+    circle->setOutlineThickness(1.f);
+    window.draw(*circle);
+
+    sf::Text label(m_font, circle->getLabel(), 12);
+    label.setFillColor(sf::Color::Black);
+    sf::Vector2f circlePos = circle->getPosition();
+    sf::Vector2f circleRadius = circle->getRadius();
+    label.setPosition(sf::Vector2f(circlePos.x + circleRadius.x, circlePos.y + circleRadius.y));
+    centerText(label);
+    window.draw(label);
+
 }
 
 void DatapathView::drawWire(sf::RenderWindow& window, const Wire& wire) {
@@ -179,6 +278,14 @@ void DatapathView::drawWireLabel(sf::RenderWindow& window, const Wire& wire) {
     
     window.draw(background);
     window.draw(label);
+}
+
+void DatapathView::centerText(sf::Text& label) {
+    sf::FloatRect textBounds = label.getLocalBounds();
+    label.setOrigin({
+        textBounds.position.x + textBounds.size.x / 2.0f,
+        textBounds.position.y + textBounds.size.y / 2.0f
+    });
 }
 
 } // namespace ez_arch

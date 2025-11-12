@@ -6,7 +6,7 @@
 int main() {
  
   sf::RenderWindow window(sf::VideoMode({1200, 800}), "EZ Architecture - MIPS Visualizer");
-  window.setFramerateLimit(20);
+  window.setFramerateLimit(2);
   
   // Create the CPU instance
   ez_arch::CPU cpu;
