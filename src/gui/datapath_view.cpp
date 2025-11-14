@@ -14,6 +14,8 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_branchSL    = std::make_unique<EllipseShape>();
 
     m_pcAlu       = std::make_unique<ALUShape>(m_font);
+    m_branchAlu   = std::make_unique<ALUShape>(m_font);
+    m_dataAlu     = std::make_unique<ALUShape>(m_font, true);
 
     calculateLayout();
     setupWires();
@@ -49,6 +51,11 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_branchSL->setLabel(" Shift\nLeft 2");
 
     m_pcAlu->setLabel("Add");
+    
+    m_branchAlu->setLabel("ALU\nResult");
+
+    m_dataAlu->setLabel("ALU");
+
 
 }
 
@@ -93,7 +100,11 @@ void DatapathView::calculateLayout() {
     m_pcBox.position = {m_x + 100.f, m_y + 500.f};
     m_pcBox.size = {50.f, 100.f};
 
-    m_pcAlu->setOriginPosition(sf::Vector2f(300.f + m_x, 75.f + m_y));
+    m_pcAlu->setOriginPosition(sf::Vector2f(350.f + m_x, 75.f + m_y));
+    
+    m_branchAlu->setOriginPosition(sf::Vector2f(1100.f + m_x, 100.f + m_y));
+    
+    m_dataAlu->setOriginPosition(sf::Vector2f(1150.f + m_x, 550.f + m_y));
 
     m_instructionMemory.position = {m_x + 250.f, m_y + 500.f};
     m_instructionMemory.size = {150.f, 150.f};
@@ -143,6 +154,8 @@ void DatapathView::draw(sf::RenderWindow& window) {
     drawEllipse(window, m_branchSL, sf::Color::White);
 
     drawALU(window, m_pcAlu);
+    drawALU(window, m_branchAlu);
+    drawALU(window, m_dataAlu);
     // Draw wire labels on top of everything
     // for (const auto& wire : m_wires) {
     //     if (!wire.label.empty()) {

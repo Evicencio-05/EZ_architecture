@@ -82,6 +82,8 @@ private:
     std::unique_ptr<EllipseShape> m_branchSL;
 
     std::unique_ptr<ALUShape> m_pcAlu;
+    std::unique_ptr<ALUShape> m_branchAlu;
+    std::unique_ptr<ALUShape> m_dataAlu;
     
     // All wire connections
     std::vector<Wire> m_wires;

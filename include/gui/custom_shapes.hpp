@@ -46,10 +46,11 @@ private:
 
 class ALUShape : public sf::Drawable, public sf::Transformable {
 public:
-    ALUShape(sf::Font& font, unsigned int characterSize = 12, sf::Vector2f originPosition = sf::Vector2f(0.f,0.f), sf::Color color = sf::Color::White,
+    ALUShape(sf::Font& font, bool isDataALU = false, unsigned int characterSize = 12, sf::Vector2f originPosition = sf::Vector2f(0.f,0.f), sf::Color color = sf::Color::White,
               sf::Color outlineColor = sf::Color::Black)
       : m_font(font), m_vertices(sf::PrimitiveType::Triangles, 15), m_fillColor(color), m_originPosition(originPosition),
-        m_outlineVertices(sf::PrimitiveType::LineStrip, 8), m_outlineColor(outlineColor), m_characterSize(characterSize) {
+        m_outlineVertices(sf::PrimitiveType::LineStrip, 8), m_outlineColor(outlineColor), m_dataALU(isDataALU),
+        m_characterSize(characterSize) {
       updatePositon();
       updateFillColor();
       updateOutlineColor();
@@ -93,6 +94,22 @@ public:
       sf::FloatRect textBounds = label.getLocalBounds();
       label.setOrigin({ 0, textBounds.position.y + textBounds.size.y / 2.0f});
       target.draw(label);
+
+      if (m_dataALU) {
+        sf::Text zero(m_font, "Zero", m_characterSize);
+        zero.setFillColor(sf::Color::Black);
+        zero.setPosition(sf::Vector2f(m_vertices[2].position.x, m_vertices[2].position.y));
+        sf::FloatRect zeroBounds = zero.getLocalBounds();
+        zero.setOrigin({ zeroBounds.position.x + zeroBounds.size.x + 2.f, 0});
+        target.draw(zero);
+
+        sf::Text result(m_font, "Result", m_characterSize);
+        result.setFillColor(sf::Color::Black);
+        result.setPosition(sf::Vector2f(m_vertices[8].position.x, m_vertices[8].position.y));
+        sf::FloatRect resultBounds = result.getLocalBounds();
+        result.setOrigin({ resultBounds.position.x + resultBounds.size.x + 2.f, resultBounds.position.y + resultBounds.size.y});
+        target.draw(result);
+      }
     }
 
 private:
