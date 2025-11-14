@@ -81,7 +81,7 @@ private:
     std::unique_ptr<EllipseShape> m_jumpSL;
     std::unique_ptr<EllipseShape> m_branchSL;
 
-
+    std::unique_ptr<ALUShape> m_pcAlu;
     
     // All wire connections
     std::vector<Wire> m_wires;
@@ -91,6 +91,7 @@ private:
     void setupWires();  // Define all wire connections
     void drawComponentBox(sf::RenderWindow& window, const ComponentBox& box, sf::Color color);
     void drawEllipse(sf::RenderWindow& window, std::unique_ptr<EllipseShape>& circle, sf::Color color);
+    void drawALU(sf::RenderWindow& window, std::unique_ptr<ALUShape>& alu, sf::Color color = sf::Color::White);
     void drawWire(sf::RenderWindow& window, const Wire& wire);
     void drawWireLabel(sf::RenderWindow& window, const Wire& wire);
     void centerText(sf::Text& text);

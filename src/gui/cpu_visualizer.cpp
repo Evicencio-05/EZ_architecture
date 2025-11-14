@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <iostream>
+#include <cctype>
 
 namespace ez_arch {
 
@@ -37,7 +38,7 @@ namespace ez_arch {
 
       // Create control buttons - positioned in top bar
       auto stepStageBtn = std::make_unique<Button>("Stage", m_font);
-      stepStageBtn->setPosition(710.f, 15.f);
+      stepStageBtn->setPosition(700.f, 15.f);
       stepStageBtn->setCallback([this]() { m_cpu.step_stage(); });
       m_buttons.push_back(std::move(stepStageBtn));
       
@@ -47,15 +48,54 @@ namespace ez_arch {
       m_buttons.push_back(std::move(stepBtn));
       
       auto runBtn = std::make_unique<Button>("Run", m_font);
-      runBtn->setPosition(890.f, 15.f);
+      runBtn->setPosition(900.f, 15.f);
       runBtn->setCallback([this]() { m_cpu.run(); });
       m_buttons.push_back(std::move(runBtn));
       
       auto resetBtn = std::make_unique<Button>("Reset", m_font);
-      resetBtn->setPosition(980.f, 15.f);
+      resetBtn->setPosition(1000.f, 15.f);
       resetBtn->setCallback([this]() { m_cpu.reset(); });
       m_buttons.push_back(std::move(resetBtn));
       
+      // Load queued to memory button
+      auto loadBtn = std::make_unique<Button>("LoadQ", m_font);
+      loadBtn->setPosition(1100.f, 15.f);
+      loadBtn->setCallback([this]() {
+          // Append instructions into memory at base address 0x100, sequentially
+          const uint32_t base = 0x00000100;
+          uint32_t addr = base;
+          for (const auto& line : m_instructionQueue) {
+          try {
+          word_t w = Decoder::assemble(line);
+          m_cpu.get_memory().write_word(addr, w);
+          addr += 4;
+          } catch (...) {
+          // ignore malformed lines
+          }
+          }
+          // Set PC to the base of the loaded block
+          m_cpu.get_registers().set_pc(base);
+          });
+      m_buttons.push_back(std::move(loadBtn));
+
+      // Run from queue button
+      auto runQBtn = std::make_unique<Button>("RunQ", m_font);
+      runQBtn->setPosition(1200.f, 15.f);
+      runQBtn->setCallback([this]() {
+          const uint32_t base = 0x00000100;
+          uint32_t addr = base;
+          for (const auto& line : m_instructionQueue) {
+          try {
+          word_t w = Decoder::assemble(line);
+          m_cpu.get_memory().write_word(addr, w);
+          addr += 4;
+          } catch (...) {}
+          }
+          m_cpu.get_registers().set_pc(base);
+          m_cpu.run();
+          });
+      m_buttons.push_back(std::move(runQBtn));
+
       // Create toggle buttons - positioned in left sidebar
       auto regToggle = std::make_unique<Button>("R", m_font);
       regToggle->setPosition(5.f, TOP_BAR_HEIGHT + 10.f);
@@ -80,6 +120,72 @@ namespace ez_arch {
         m_activeView = (m_activeView == ActiveView::INSTRUCTIONS) ? ActiveView::NONE : ActiveView::INSTRUCTIONS; 
       });
       m_buttons.push_back(std::move(instToggle));
+      
+      // Instruction Builder toggle
+      auto builderToggle = std::make_unique<Button>("B", m_font);
+      builderToggle->setPosition(5.f, TOP_BAR_HEIGHT + 190.f);
+      builderToggle->setSize(TOGGLE_BUTTON_SIZE, TOGGLE_BUTTON_SIZE);
+      builderToggle->setCallback([this]() {
+        m_activeView = (m_activeView == ActiveView::BUILDER) ? ActiveView::NONE : ActiveView::BUILDER;
+      });
+      m_buttons.push_back(std::move(builderToggle));
+
+      // Instruction Queue toggle
+      auto queueToggle = std::make_unique<Button>("Q", m_font);
+      queueToggle->setPosition(5.f, TOP_BAR_HEIGHT + 250.f);
+      queueToggle->setSize(TOGGLE_BUTTON_SIZE, TOGGLE_BUTTON_SIZE);
+      queueToggle->setCallback([this]() {
+        m_activeView = (m_activeView == ActiveView::QUEUE) ? ActiveView::NONE : ActiveView::QUEUE;
+      });
+      m_buttons.push_back(std::move(queueToggle));
+
+      // Builder and Queue views
+      m_builderView = std::make_unique<InstructionBuilderView>(m_font);
+      m_queueView = std::make_unique<InstructionQueueView>(m_font);
+
+      // Load cached instructions
+      m_instructionQueue = InstructionCache::load();
+      m_queueView->setItems(m_instructionQueue);
+
+      // Position views
+      m_builderView->setPosition(LEFT_SIDEBAR_WIDTH + 20.f, TOP_BAR_HEIGHT + 20.f);
+      m_builderView->setSize(500.f, 240.f);
+      m_queueView->setPosition(LEFT_SIDEBAR_WIDTH + 540.f, TOP_BAR_HEIGHT + 20.f);
+      m_queueView->setSize(500.f, 300.f);
+
+      // Wire callbacks
+      m_builderView->setOnAdd([this](const std::string& line){
+        m_instructionQueue.push_back(line);
+        InstructionCache::append(line);
+        m_queueView->setItems(m_instructionQueue);
+      });
+
+      m_queueView->setOnDelete([this](size_t idx){
+        if (idx < m_instructionQueue.size()) {
+          m_instructionQueue.erase(m_instructionQueue.begin() + idx);
+          syncQueueToCache();
+          m_queueView->setItems(m_instructionQueue);
+        }
+      });
+
+      m_queueView->setOnClear([this](){
+        m_instructionQueue.clear();
+        InstructionCache::clear();
+        m_queueView->setItems(m_instructionQueue);
+      });
+
+      // Reorder callbacks
+      m_queueView->setOnMove([this](size_t idx, int delta){
+        if (idx < m_instructionQueue.size()) {
+          size_t newIdx = static_cast<size_t>(static_cast<int>(idx) + delta);
+          if (newIdx < m_instructionQueue.size()) {
+            std::swap(m_instructionQueue[idx], m_instructionQueue[newIdx]);
+            syncQueueToCache();
+            m_queueView->setItems(m_instructionQueue);
+          }
+        }
+      });
+
   }
 
   bool CPUVisualizer::loadFont() {
@@ -141,18 +247,28 @@ namespace ez_arch {
     for (auto& btn : m_buttons) {
       btn->handleMouseMove(x, y);
     }
+    if (m_activeView == ActiveView::BUILDER && m_builderView) m_builderView->handleMouseMove(x, y);
+    if (m_activeView == ActiveView::QUEUE && m_queueView) m_queueView->handleMouseMove(x, y);
   }
   
   void CPUVisualizer::handleMousePress(float x, float y) {
     for (auto& btn : m_buttons) {
       btn->handleMousePress(x, y);
     }
+    if (m_activeView == ActiveView::BUILDER && m_builderView) m_builderView->handleMousePress(x, y);
+    if (m_activeView == ActiveView::QUEUE && m_queueView) m_queueView->handleMousePress(x, y);
   }
   
   void CPUVisualizer::handleMouseRelease(float x, float y) {
     for (auto& btn : m_buttons) {
       btn->handleMouseRelease(x, y);
     }
+    if (m_activeView == ActiveView::BUILDER && m_builderView) m_builderView->handleMouseRelease(x, y);
+    if (m_activeView == ActiveView::QUEUE && m_queueView) m_queueView->handleMouseRelease(x, y);
+  }
+
+  void CPUVisualizer::handleMouseWheel(float x, float y, float delta) {
+    if (m_activeView == ActiveView::BUILDER && m_builderView) m_builderView->handleMouseWheel(x, y, delta);
   }
   
   void CPUVisualizer::drawTopBar() {
@@ -239,10 +355,58 @@ namespace ez_arch {
       case ActiveView::INSTRUCTIONS:
         m_instructionView->draw(m_window);
         break;
+      case ActiveView::BUILDER:
+        if (m_builderView) m_builderView->draw(m_window);
+        if (m_queueView) m_queueView->draw(m_window);
+        break;
+      case ActiveView::QUEUE:
+        if (m_queueView) m_queueView->draw(m_window);
+        break;
       case ActiveView::NONE:
         // Nothing to draw
         break;
     }
+  }
+
+  
+  void CPUVisualizer::handleTextEntered(uint32_t codepoint) {
+    bool builderActive = (m_activeView == ActiveView::BUILDER && m_builderView != nullptr);
+    if (builderActive) {
+      m_builderView->handleTextEntered(codepoint);
+    }
+
+    // Global hotkeys via text input (only for printable characters)
+    char ch = static_cast<char>(codepoint);
+    if (std::isprint(static_cast<unsigned char>(ch))) {
+      char c = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+
+      // If builder is active and not typing and no dropdown open, allow builder-specific hotkeys
+      if (builderActive && !m_builderView->textActive() && !m_builderView->anyDropdownOpen()) {
+        if (c == 'o') { m_builderView->openOp(); return; }
+        if (c == '1') { m_builderView->openRS(); return; }
+        if (c == '2') { m_builderView->openRT(); return; }
+        if (c == '3') { m_builderView->openRD(); return; }
+      }
+
+      // View toggles (work regardless of active view unless typing text in builder)
+      if (!builderActive || (!m_builderView->textActive() && !m_builderView->anyDropdownOpen())) {
+        if (c == 'r') { m_activeView = (m_activeView == ActiveView::REGISTERS) ? ActiveView::NONE : ActiveView::REGISTERS; return; }
+        if (c == 'm') { m_activeView = (m_activeView == ActiveView::MEMORY) ? ActiveView::NONE : ActiveView::MEMORY; return; }
+        if (c == 'i') { m_activeView = (m_activeView == ActiveView::INSTRUCTIONS) ? ActiveView::NONE : ActiveView::INSTRUCTIONS; return; }
+        if (c == 'b') { m_activeView = (m_activeView == ActiveView::BUILDER) ? ActiveView::NONE : ActiveView::BUILDER; return; }
+        if (c == 'q') { m_activeView = (m_activeView == ActiveView::QUEUE) ? ActiveView::NONE : ActiveView::QUEUE; return; }
+      }
+    }
+  }
+  
+  void CPUVisualizer::handleKeyPressed(int keyCode) {
+    if (m_activeView == ActiveView::BUILDER && m_builderView) {
+      m_builderView->handleKeyPressed(keyCode);
+    }
+  }
+
+  void CPUVisualizer::syncQueueToCache() {
+    InstructionCache::save(m_instructionQueue);
   }
 
 } // namespace ez_arch

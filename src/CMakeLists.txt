@@ -43,6 +43,9 @@ add_executable(ez_architecture_gui
     gui/instruction_view.cpp
     gui/datapath_view.cpp
     gui/button.cpp
+    gui/instruction_cache.cpp
+    gui/instruction_builder_view.cpp
+    gui/instruction_queue_view.cpp
 )
 
 target_link_libraries(ez_architecture_gui

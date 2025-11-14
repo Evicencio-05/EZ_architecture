@@ -6,22 +6,12 @@
 int main() {
  
   sf::RenderWindow window(sf::VideoMode({1200, 800}), "EZ Architecture - MIPS Visualizer");
-  window.setFramerateLimit(2);
+  window.setFramerateLimit(15);
   
   // Create the CPU instance
   ez_arch::CPU cpu;
   
-  // Load a simple test program
-  // add $t0, $t1, $t2  (0x012A4020)
-  // lw $t3, 0($t0)     (0x8D0B0000)
-  // sw $t3, 4($t0)     (0xAD0B0004)
-  std::vector<ez_arch::word_t> testProgram = {
-    0x012A4020,  // add $t0, $t1, $t2
-    0x8D0B0000,  // lw $t3, 0($t0)
-    0xAD0B0004,  // sw $t3, 4($t0)
-    0x00000000   // nop (halt)
-  };
-  cpu.load_program(testProgram);
+  // Start with empty program; use the Builder/Queue to construct instructions at runtime.
   
   // Create the visualizer that will display the CPU state
   ez_arch::CPUVisualizer visualizer(cpu, window);
@@ -50,6 +40,20 @@ int main() {
       if (event->is<sf::Event::MouseButtonReleased>()) {
         auto pos = event->getIf<sf::Event::MouseButtonReleased>()->position;
         visualizer.handleMouseRelease(pos.x, pos.y);
+      }
+      if (event->is<sf::Event::MouseWheelScrolled>()) {
+        auto ev = event->getIf<sf::Event::MouseWheelScrolled>();
+        visualizer.handleMouseWheel(ev->position.x, ev->position.y, ev->delta);
+      }
+
+      // Keyboard/text events (for builder input)
+      if (event->is<sf::Event::TextEntered>()) {
+        auto unicode = event->getIf<sf::Event::TextEntered>()->unicode;
+        visualizer.handleTextEntered(unicode);
+      }
+      if (event->is<sf::Event::KeyPressed>()) {
+        auto code = static_cast<int>(event->getIf<sf::Event::KeyPressed>()->code);
+        visualizer.handleKeyPressed(code);
       }
     }
 

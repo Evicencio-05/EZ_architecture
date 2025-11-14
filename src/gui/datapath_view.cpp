@@ -13,6 +13,8 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_jumpSL      = std::make_unique<EllipseShape>();
     m_branchSL    = std::make_unique<EllipseShape>();
 
+    m_pcAlu       = std::make_unique<ALUShape>(m_font);
+
     calculateLayout();
     setupWires();
 
@@ -45,6 +47,8 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_jumpSL->setLabel(" Shift\nLeft 2");
 
     m_branchSL->setLabel(" Shift\nLeft 2");
+
+    m_pcAlu->setLabel("Add");
 
 }
 
@@ -88,6 +92,8 @@ void DatapathView::calculateLayout() {
     // Layout the datapath components in a logical flow (left to right)
     m_pcBox.position = {m_x + 100.f, m_y + 500.f};
     m_pcBox.size = {50.f, 100.f};
+
+    m_pcAlu->setOriginPosition(sf::Vector2f(300.f + m_x, 75.f + m_y));
 
     m_instructionMemory.position = {m_x + 250.f, m_y + 500.f};
     m_instructionMemory.size = {150.f, 150.f};
@@ -135,6 +141,8 @@ void DatapathView::draw(sf::RenderWindow& window) {
     drawEllipse(window, m_ALUControl, sf::Color::White);
     drawEllipse(window, m_jumpSL, sf::Color::White);
     drawEllipse(window, m_branchSL, sf::Color::White);
+
+    drawALU(window, m_pcAlu);
     // Draw wire labels on top of everything
     // for (const auto& wire : m_wires) {
     //     if (!wire.label.empty()) {
@@ -204,7 +212,12 @@ void DatapathView::drawEllipse(sf::RenderWindow& window, std::unique_ptr<Ellipse
     label.setPosition(sf::Vector2f(circlePos.x + circleRadius.x, circlePos.y + circleRadius.y));
     centerText(label);
     window.draw(label);
+}
 
+void DatapathView::drawALU(sf::RenderWindow& window, std::unique_ptr<ALUShape>& alu, sf::Color color) {
+  alu->setFillColor(color);
+  sf::RenderStates states;
+  alu->draw(window, states);
 }
 
 void DatapathView::drawWire(sf::RenderWindow& window, const Wire& wire) {
