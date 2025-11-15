@@ -191,11 +191,11 @@ private:
 
 class MuxShape : public sf::Drawable, public sf::Transformable {
 public:
-  MuxShape( sf::Font& font, bool flip = 0, unsigned int characterSize = 12, sf::Vector2f origin = {0,0},
+  MuxShape( sf::Font& font, bool flip = false, unsigned int characterSize = 12, sf::Vector2f origin = {0,0},
             sf::Color fillColor = sf::Color::White, sf::Color outlineColor = sf::Color::Black) :
     m_font(font), m_flip(flip), m_characterSize(characterSize),
-    m_fillColor(fillColor), m_outlineColor(outlineColor), m_topCircle(20), m_bottomCircle(20),
-    m_centerRect(sf::Vector2f(40, 60)), m_outlineVertices(sf::PrimitiveType::Lines, 4) {
+    m_fillColor(fillColor), m_outlineColor(outlineColor), m_topCircle(15), m_bottomCircle(15),
+    m_centerRect(sf::Vector2f(30, 60)), m_outlineVertices(sf::PrimitiveType::Lines, 4) {
       Transformable::setOrigin(origin);
       updatePosition();
       updateFillColor();
@@ -230,6 +230,47 @@ public:
     target.draw(m_bottomCircle, states);
     target.draw(m_centerRect, states);
     target.draw(m_outlineVertices, states);
+
+    std::string topLabel = m_flip ? "1" : "0";
+    sf::Vector2f position = Transformable::getPosition();
+    sf::Text top(m_font, topLabel, m_characterSize);
+    top.setFillColor(sf::Color::Black);
+    top.setPosition(sf::Vector2f(
+      position.x + 15.f,
+      position.y + 15.f
+    ));
+    sf::FloatRect textBounds = top.getLocalBounds();
+    top.setOrigin({
+        textBounds.position.x + textBounds.size.x / 2.f,
+        textBounds.position.y + textBounds.size.y / 2.f
+    });
+    target.draw(top);
+
+    std::string bottomLabel = m_flip ? "0" : "1";
+    sf::Text bottom(m_font, bottomLabel, m_characterSize);
+    bottom.setFillColor(sf::Color::Black);
+    bottom.setPosition(sf::Vector2f(
+      position.x + 15.f,
+      position.y + 80.f
+    ));
+    bottom.setOrigin({
+        textBounds.position.x + textBounds.size.x / 2.f,
+        textBounds.position.y + textBounds.size.y / 2.f
+    });
+    target.draw(bottom);
+
+    sf::Text center(m_font, "M\nU\nX", m_characterSize);
+    center.setFillColor(sf::Color::Black);
+    center.setPosition(sf::Vector2f(
+      position.x + 14.f,
+      position.y + 33.f
+    ));
+    center.setOrigin({
+        textBounds.position.x + textBounds.size.x / 2.f,
+        textBounds.position.y + textBounds.size.y / 2.f
+    });
+    target.draw(center);
+
   }
 
 private:
@@ -267,11 +308,13 @@ private:
 
     m_outlineVertices[0].position = sf::Vector2f(0, 20.f);
     m_outlineVertices[1].position = sf::Vector2f(0, 80.f);
-    m_outlineVertices[2].position = sf::Vector2f(41.f, 20.f);
-    m_outlineVertices[3].position = sf::Vector2f(41.f, 80.f);
+    m_outlineVertices[2].position = sf::Vector2f(31.f, 20.f);
+    m_outlineVertices[3].position = sf::Vector2f(31.f, 80.f);
   }
 
 };
+
+// TODO: Create shape for AND gate
 
 // TODO: Create another shape for lines with lables.
 

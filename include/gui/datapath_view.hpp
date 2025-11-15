@@ -76,6 +76,7 @@ private:
     ComponentBox m_registers;
     ComponentBox m_dataMemory;
 
+    std::unique_ptr<EllipseShape> m_control;
     std::unique_ptr<EllipseShape> m_signExt;
     std::unique_ptr<EllipseShape> m_ALUControl;
     std::unique_ptr<EllipseShape> m_jumpSL;
@@ -86,6 +87,10 @@ private:
     std::unique_ptr<ALUShape> m_dataAlu;
 
     std::unique_ptr<MuxShape> m_regMux;
+    std::unique_ptr<MuxShape> m_dataMux;
+    std::unique_ptr<MuxShape> m_branchMux;
+    std::unique_ptr<MuxShape> m_jumpMux;
+    std::unique_ptr<MuxShape> m_writeMux;
     
     // All wire connections
     std::vector<Wire> m_wires;

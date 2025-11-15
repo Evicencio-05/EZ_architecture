@@ -8,6 +8,7 @@ namespace ez_arch {
 DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     : m_cpu(cpu), m_font(font), m_x(0.f), m_y(0.f), m_width(800.f), m_height(600.f) {
 
+    m_control     = std::make_unique<EllipseShape>();
     m_signExt     = std::make_unique<EllipseShape>();
     m_ALUControl  = std::make_unique<EllipseShape>();
     m_jumpSL      = std::make_unique<EllipseShape>();
@@ -18,6 +19,10 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_dataAlu     = std::make_unique<ALUShape>(m_font, true);
 
     m_regMux      = std::make_unique<MuxShape>(m_font);
+    m_dataMux     = std::make_unique<MuxShape>(m_font);
+    m_jumpMux     = std::make_unique<MuxShape>(m_font, true);
+    m_branchMux   = std::make_unique<MuxShape>(m_font);
+    m_writeMux    = std::make_unique<MuxShape>(m_font, true);
 
     calculateLayout();
     setupWires();
@@ -44,6 +49,8 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_dataMemory.inputs.push_back("Write\nData");
     m_dataMemory.outputs[1] = "        Read\n        Data";
 
+    m_control->setLabel("Control");
+
     m_signExt->setLabel(" Sign\nExtend");
     
     m_ALUControl->setLabel("  ALU\nControl");
@@ -57,8 +64,6 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_branchAlu->setLabel("ALU\nResult");
 
     m_dataAlu->setLabel("ALU");
-
-
 }
 
 void DatapathView::setPosition(float x, float y) {
@@ -104,33 +109,44 @@ void DatapathView::calculateLayout() {
 
     m_pcAlu->setPosition(sf::Vector2f(350.f + m_x, 75.f + m_y));
 
-    m_regMux->setPosition(sf::Vector2f(500.f + m_x, 200.f + m_y));
-
-    m_branchAlu->setPosition(sf::Vector2f(1100.f + m_x, 100.f + m_y));
-    
     m_instructionMemory.position = {m_x + 250.f, m_y + 500.f};
     m_instructionMemory.size = {150.f, 150.f};
-
-    m_registers.position = {m_x + 750.f, m_y + 500.f};
-    m_registers.size = {150.f, 250.f};
-
-    m_dataAlu->setPosition(sf::Vector2f(1150.f + m_x, 500.f + m_y));
-    m_dataAlu->setAluScale(sf::Vector2f(2.f, 2.f));
-
-    m_dataMemory.position = {m_x + 1300.f, m_y + 550.f};
-    m_dataMemory.size = {150.f, 200.f};
-
-    m_signExt->setRadius(sf::Vector2f(50.f, 50.f));
-    m_signExt->setPosition(sf::Vector2f(m_x + 800.f, m_y + 800.f));
-    
-    m_ALUControl->setRadius(sf::Vector2f(50.f, 50.f));
-    m_ALUControl->setPosition(sf::Vector2f(m_x + 1100.f, m_y + 800.f));
 
     m_jumpSL->setRadius(sf::Vector2f(25.f, 25.f));
     m_jumpSL->setPosition(sf::Vector2f(m_x + 500.f, m_y + 50.f));
 
+    m_regMux->setPosition(sf::Vector2f(650.f + m_x, 600.f + m_y));
+
+    m_control->setRadius(sf::Vector2f(50.f, 125.f));
+    m_control->setPosition(sf::Vector2f(800.f, 275.f));
+
+    m_registers.position = {m_x + 750.f, m_y + 480.f};
+    m_registers.size = {150.f, 250.f};
+
+    m_signExt->setRadius(sf::Vector2f(50.f, 50.f));
+    m_signExt->setPosition(sf::Vector2f(m_x + 800.f, m_y + 800.f));
+
     m_branchSL->setRadius(sf::Vector2f(25.f, 25.f));
     m_branchSL->setPosition(sf::Vector2f(m_x + 1000.f, m_y + 150.f));
+
+    m_branchAlu->setPosition(sf::Vector2f(1100.f + m_x, 100.f + m_y));
+
+    m_dataMux->setPosition(sf::Vector2f(1050.f + m_x, 600.f + m_y));
+
+    m_dataAlu->setPosition(sf::Vector2f(1150.f + m_x, 500.f + m_y));
+    m_dataAlu->setAluScale(sf::Vector2f(2.f, 2.f));
+
+    m_ALUControl->setRadius(sf::Vector2f(50.f, 50.f));
+    m_ALUControl->setPosition(sf::Vector2f(m_x + 1100.f, m_y + 800.f));
+
+    m_branchMux->setPosition(sf::Vector2f(1200.f + m_x, 70.f + m_y));
+
+    m_jumpMux->setPosition(sf::Vector2f(1350.f + m_x, 70.f + m_y));
+
+    m_dataMemory.position = {m_x + 1300.f, m_y + 550.f};
+    m_dataMemory.size = {150.f, 200.f};
+
+    m_writeMux->setPosition(sf::Vector2f(1500.f + m_x, 610.f + m_y));
 }
 
 void DatapathView::setupWires() {
@@ -153,6 +169,7 @@ void DatapathView::draw(sf::RenderWindow& window) {
     drawComponentBox(window, m_registers, sf::Color::White);
     drawComponentBox(window, m_dataMemory, sf::Color::White);
     
+    drawEllipse(window, m_control, sf::Color::White);
     drawEllipse(window, m_signExt, sf::Color::White);
     drawEllipse(window, m_ALUControl, sf::Color::White);
     drawEllipse(window, m_jumpSL, sf::Color::White);
@@ -163,6 +180,10 @@ void DatapathView::draw(sf::RenderWindow& window) {
     drawALU(window, m_dataAlu);
 
     drawMux(window, m_regMux);
+    drawMux(window, m_dataMux);
+    drawMux(window, m_branchMux);
+    drawMux(window, m_jumpMux);
+    drawMux(window, m_writeMux);
     // Draw wire labels on top of everything
     // for (const auto& wire : m_wires) {
     //     if (!wire.label.empty()) {
@@ -219,6 +240,7 @@ void DatapathView::drawComponentBox(sf::RenderWindow& window, const ComponentBox
     }
 }
 
+// TODO: Modify Ellipse class to have a similar function as other custom shapes to make a Template function
 void DatapathView::drawEllipse(sf::RenderWindow& window, std::unique_ptr<EllipseShape>& circle, sf::Color color) {
     circle->setFillColor(color);
     circle->setOutlineColor(sf::Color::Black);
