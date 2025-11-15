@@ -84,6 +84,8 @@ private:
     std::unique_ptr<ALUShape> m_pcAlu;
     std::unique_ptr<ALUShape> m_branchAlu;
     std::unique_ptr<ALUShape> m_dataAlu;
+
+    std::unique_ptr<MuxShape> m_regMux;
     
     // All wire connections
     std::vector<Wire> m_wires;
@@ -94,6 +96,7 @@ private:
     void drawComponentBox(sf::RenderWindow& window, const ComponentBox& box, sf::Color color);
     void drawEllipse(sf::RenderWindow& window, std::unique_ptr<EllipseShape>& circle, sf::Color color);
     void drawALU(sf::RenderWindow& window, std::unique_ptr<ALUShape>& alu, sf::Color color = sf::Color::White);
+    void drawMux(sf::RenderWindow& window, std::unique_ptr<MuxShape>& mux, sf::Color color = sf::Color::White);
     void drawWire(sf::RenderWindow& window, const Wire& wire);
     void drawWireLabel(sf::RenderWindow& window, const Wire& wire);
     void centerText(sf::Text& text);

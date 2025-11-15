@@ -46,12 +46,13 @@ private:
 
 class ALUShape : public sf::Drawable, public sf::Transformable {
 public:
-    ALUShape(sf::Font& font, bool isDataALU = false, unsigned int characterSize = 12, sf::Vector2f originPosition = sf::Vector2f(0.f,0.f), sf::Color color = sf::Color::White,
-              sf::Color outlineColor = sf::Color::Black)
-      : m_font(font), m_vertices(sf::PrimitiveType::Triangles, 15), m_fillColor(color), m_originPosition(originPosition),
-        m_outlineVertices(sf::PrimitiveType::LineStrip, 8), m_outlineColor(outlineColor), m_dataALU(isDataALU),
-        m_characterSize(characterSize) {
-      updatePositon();
+    ALUShape(sf::Font& font, bool isDataALU = false, unsigned int characterSize = 12, sf::Vector2f origin = {0,0},
+        sf::Color color = sf::Color::White, sf::Color outlineColor = sf::Color::Black)
+      : m_font(font), m_vertices(sf::PrimitiveType::Triangles, 15), m_fillColor(color),
+        m_outlineVertices(sf::PrimitiveType::LineStrip, 8), m_outlineColor(outlineColor),
+        m_dataALU(isDataALU), m_characterSize(characterSize), m_aluScale(sf::Vector2f(1.f, 1.f)) {
+      Transformable::setOrigin(origin);
+      updatePosition();
       updateFillColor();
       updateOutlineColor();
     }
@@ -78,19 +79,27 @@ public:
       updateOutlineColor();
     }
 
-    void setOriginPosition(sf::Vector2f position) {
-      m_originPosition = position;
-      updatePositon();
+    void setAluScale(sf::Vector2f scale) {
+      m_aluScale = scale;
+      updatePosition();
+    }
+
+    sf::Vector2f getAluScale() {
+      return m_aluScale;
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
       states.transform *= getTransform();
       target.draw(m_vertices, states);
       target.draw(m_outlineVertices, states);
-
+      
+      sf::Vector2f position = Transformable::getPosition();
       sf::Text label(m_font, m_label, m_characterSize);
       label.setFillColor(sf::Color::Black);
-      label.setPosition(sf::Vector2f(m_vertices[14].position.x + 1.f, m_vertices[14].position.y));
+      label.setPosition(sf::Vector2f(
+        position.x + m_vertices[14].position.x + 2.f,
+        position.y + m_vertices[14].position.y
+      ));
       sf::FloatRect textBounds = label.getLocalBounds();
       label.setOrigin({ 0, textBounds.position.y + textBounds.size.y / 2.0f});
       target.draw(label);
@@ -98,14 +107,20 @@ public:
       if (m_dataALU) {
         sf::Text zero(m_font, "Zero", m_characterSize);
         zero.setFillColor(sf::Color::Black);
-        zero.setPosition(sf::Vector2f(m_vertices[2].position.x, m_vertices[2].position.y));
+        zero.setPosition(sf::Vector2f(
+          position.x + m_vertices[2].position.x,
+          position.y + m_vertices[2].position.y + 20.f
+        ));
         sf::FloatRect zeroBounds = zero.getLocalBounds();
         zero.setOrigin({ zeroBounds.position.x + zeroBounds.size.x + 2.f, 0});
         target.draw(zero);
 
         sf::Text result(m_font, "Result", m_characterSize);
         result.setFillColor(sf::Color::Black);
-        result.setPosition(sf::Vector2f(m_vertices[8].position.x, m_vertices[8].position.y));
+        result.setPosition(sf::Vector2f(
+          position.x + m_vertices[8].position.x,
+          position.y + m_vertices[8].position.y - 30.f
+        ));
         sf::FloatRect resultBounds = result.getLocalBounds();
         result.setOrigin({ resultBounds.position.x + resultBounds.size.x + 2.f, resultBounds.position.y + resultBounds.size.y});
         target.draw(result);
@@ -116,12 +131,12 @@ private:
     sf::Font& m_font;
     sf::VertexArray m_vertices;
     sf::Color m_fillColor;
-    sf::Vector2f m_originPosition;
     sf::VertexArray m_outlineVertices;
     sf::Color m_outlineColor;
     std::string m_label;
     bool m_dataALU;
     unsigned int m_characterSize;
+    sf::Vector2f m_aluScale;
 
 
     void updateFillColor() {
@@ -141,37 +156,123 @@ private:
       }
     }
 
-    void updatePositon() {
-      m_vertices[0].position = sf::Vector2f(0.f + m_originPosition.x, 0.f + m_originPosition.y);
-      m_vertices[1].position = sf::Vector2f(0.f + m_originPosition.x, 20.f + m_originPosition.y);
-      m_vertices[2].position = sf::Vector2f(50.f + m_originPosition.x, 20.f + m_originPosition.y);
+    void updatePosition() {
+      m_vertices[0].position = sf::Vector2f(0.f * m_aluScale.x, 0.f * m_aluScale.y);
+      m_vertices[1].position = sf::Vector2f(0.f * m_aluScale.x, 20.f * m_aluScale.y);
+      m_vertices[2].position = sf::Vector2f(50.f * m_aluScale.x, 20.f * m_aluScale.y);
 
-      m_vertices[3].position = sf::Vector2f(50.f + m_originPosition.x, 20.f + m_originPosition.y);
-      m_vertices[4].position = sf::Vector2f(0.f + m_originPosition.x, 20.f + m_originPosition.y);
-      m_vertices[5].position = sf::Vector2f(0.f + m_originPosition.x, 80.f + m_originPosition.y);
+      m_vertices[3].position = sf::Vector2f(50.f * m_aluScale.x, 20.f * m_aluScale.y);
+      m_vertices[4].position = sf::Vector2f(0.f * m_aluScale.x, 20.f * m_aluScale.y);
+      m_vertices[5].position = sf::Vector2f(0.f * m_aluScale.x, 80.f * m_aluScale.y);
 
-      m_vertices[6].position = sf::Vector2f(0.f + m_originPosition.x, 80.f + m_originPosition.y);
-      m_vertices[7].position = sf::Vector2f(50.f + m_originPosition.x, 20.f + m_originPosition.y);
-      m_vertices[8].position = sf::Vector2f(50.f + m_originPosition.x, 80.f + m_originPosition.y);
+      m_vertices[6].position = sf::Vector2f(0.f * m_aluScale.x, 80.f * m_aluScale.y);
+      m_vertices[7].position = sf::Vector2f(50.f * m_aluScale.x, 20.f * m_aluScale.y);
+      m_vertices[8].position = sf::Vector2f(50.f * m_aluScale.x, 80.f * m_aluScale.y);
 
-      m_vertices[9].position = sf::Vector2f(50.f + m_originPosition.x, 80.f + m_originPosition.y);
-      m_vertices[10].position = sf::Vector2f(0.f + m_originPosition.x, 100.f + m_originPosition.y);
-      m_vertices[11].position = sf::Vector2f(0.f + m_originPosition.x, 80.f + m_originPosition.y);
+      m_vertices[9].position = sf::Vector2f(50.f * m_aluScale.x, 80.f * m_aluScale.y);
+      m_vertices[10].position = sf::Vector2f(0.f * m_aluScale.x, 100.f * m_aluScale.y);
+      m_vertices[11].position = sf::Vector2f(0.f * m_aluScale.x, 80.f * m_aluScale.y);
 
-      m_vertices[12].position = sf::Vector2f(0.f + m_originPosition.x, 40.f + m_originPosition.y);
-      m_vertices[13].position = sf::Vector2f(0.f + m_originPosition.x, 60.f + m_originPosition.y);
-      m_vertices[14].position = sf::Vector2f(10.f + m_originPosition.x, 50.f + m_originPosition.y);
+      m_vertices[12].position = sf::Vector2f(0.f * m_aluScale.x, 40.f * m_aluScale.y);
+      m_vertices[13].position = sf::Vector2f(0.f * m_aluScale.x, 60.f * m_aluScale.y);
+      m_vertices[14].position = sf::Vector2f(10.f * m_aluScale.x, 50.f * m_aluScale.y);
 
 
-      m_outlineVertices[0].position = sf::Vector2f(0.f + m_originPosition.x, 0.f + m_originPosition.y);
-      m_outlineVertices[1].position = sf::Vector2f(50.f + m_originPosition.x, 20.f + m_originPosition.y);
-      m_outlineVertices[2].position = sf::Vector2f(50.f + m_originPosition.x, 80.f + m_originPosition.y);
-      m_outlineVertices[3].position = sf::Vector2f(0.f + m_originPosition.x, 100.f + m_originPosition.y);
-      m_outlineVertices[4].position = sf::Vector2f(0.f + m_originPosition.x, 60.f + m_originPosition.y);
-      m_outlineVertices[5].position = sf::Vector2f(10.f + m_originPosition.x, 50.f + m_originPosition.y);
-      m_outlineVertices[6].position = sf::Vector2f(0.f + m_originPosition.x, 40.f + m_originPosition.y);
-      m_outlineVertices[7].position = sf::Vector2f(0.f + m_originPosition.x, 0.f + m_originPosition.y);
+      m_outlineVertices[0].position = sf::Vector2f(0.f * m_aluScale.x, 0.f * m_aluScale.y);
+      m_outlineVertices[1].position = sf::Vector2f(50.f * m_aluScale.x, 20.f * m_aluScale.y);
+      m_outlineVertices[2].position = sf::Vector2f(50.f * m_aluScale.x, 80.f * m_aluScale.y);
+      m_outlineVertices[3].position = sf::Vector2f(0.f * m_aluScale.x, 100.f * m_aluScale.y);
+      m_outlineVertices[4].position = sf::Vector2f(0.f * m_aluScale.x, 60.f * m_aluScale.y);
+      m_outlineVertices[5].position = sf::Vector2f(10.f * m_aluScale.x, 50.f * m_aluScale.y);
+      m_outlineVertices[6].position = sf::Vector2f(0.f * m_aluScale.x, 40.f * m_aluScale.y);
+      m_outlineVertices[7].position = sf::Vector2f(0.f * m_aluScale.x, 0.f * m_aluScale.y);
     }
 };
+
+class MuxShape : public sf::Drawable, public sf::Transformable {
+public:
+  MuxShape( sf::Font& font, bool flip = 0, unsigned int characterSize = 12, sf::Vector2f origin = {0,0},
+            sf::Color fillColor = sf::Color::White, sf::Color outlineColor = sf::Color::Black) :
+    m_font(font), m_flip(flip), m_characterSize(characterSize),
+    m_fillColor(fillColor), m_outlineColor(outlineColor), m_topCircle(20), m_bottomCircle(20),
+    m_centerRect(sf::Vector2f(40, 60)), m_outlineVertices(sf::PrimitiveType::Lines, 4) {
+      Transformable::setOrigin(origin);
+      updatePosition();
+      updateFillColor();
+      updateOutlineColor();
+    }
+
+  void setFont(sf::Font& font) {
+    m_font = font;
+  }
+
+  void flip() {
+    m_flip = !m_flip;
+  }
+
+  void setCharacterSize(unsigned int characterSize) {
+    m_characterSize = characterSize;
+  }
+
+  void setOutlineColor(sf::Color outlineColor) {
+    m_outlineColor = outlineColor;
+    updateOutlineColor();
+  }
+  
+  void setFillColor(sf::Color fillColor) {
+    m_fillColor = fillColor;
+    updateFillColor();
+  }
+
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
+    states.transform *= getTransform();
+    target.draw(m_topCircle, states);
+    target.draw(m_bottomCircle, states);
+    target.draw(m_centerRect, states);
+    target.draw(m_outlineVertices, states);
+  }
+
+private:
+  sf::Font& m_font;
+  bool m_flip;
+  unsigned int m_characterSize;
+  sf::Color m_fillColor;
+  sf::Color m_outlineColor;
+  sf::CircleShape m_topCircle;
+  sf::CircleShape m_bottomCircle;
+  sf::RectangleShape m_centerRect;
+  sf::VertexArray m_outlineVertices;
+
+  void updateFillColor() {
+    m_topCircle.setFillColor(m_fillColor);
+    m_topCircle.setOutlineThickness(1.f);
+    m_bottomCircle.setFillColor(m_fillColor);
+    m_bottomCircle.setOutlineThickness(1.f);
+    m_centerRect.setFillColor(m_fillColor);
+  }
+
+  void updateOutlineColor() {
+    m_topCircle.setOutlineColor(m_outlineColor);
+    m_bottomCircle.setOutlineColor(m_outlineColor);
+    
+    for (size_t i = 0; i < 4; ++i) {
+      m_outlineVertices[i].color = m_outlineColor;
+    }
+  }
+
+  void updatePosition() {
+    m_topCircle.setPosition(sf::Vector2f(0,0));
+    m_bottomCircle.setPosition(sf::Vector2f(0, 60.f));
+    m_centerRect.setPosition(sf::Vector2f(0, 20.f));
+
+    m_outlineVertices[0].position = sf::Vector2f(0, 20.f);
+    m_outlineVertices[1].position = sf::Vector2f(0, 80.f);
+    m_outlineVertices[2].position = sf::Vector2f(41.f, 20.f);
+    m_outlineVertices[3].position = sf::Vector2f(41.f, 80.f);
+  }
+
+};
+
+// TODO: Create another shape for lines with lables.
 
 } // namesape ez_arch

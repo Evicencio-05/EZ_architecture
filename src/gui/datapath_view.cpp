@@ -17,6 +17,8 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     m_branchAlu   = std::make_unique<ALUShape>(m_font);
     m_dataAlu     = std::make_unique<ALUShape>(m_font, true);
 
+    m_regMux      = std::make_unique<MuxShape>(m_font);
+
     calculateLayout();
     setupWires();
 
@@ -100,17 +102,20 @@ void DatapathView::calculateLayout() {
     m_pcBox.position = {m_x + 100.f, m_y + 500.f};
     m_pcBox.size = {50.f, 100.f};
 
-    m_pcAlu->setOriginPosition(sf::Vector2f(350.f + m_x, 75.f + m_y));
-    
-    m_branchAlu->setOriginPosition(sf::Vector2f(1100.f + m_x, 100.f + m_y));
-    
-    m_dataAlu->setOriginPosition(sf::Vector2f(1150.f + m_x, 550.f + m_y));
+    m_pcAlu->setPosition(sf::Vector2f(350.f + m_x, 75.f + m_y));
 
+    m_regMux->setPosition(sf::Vector2f(500.f + m_x, 200.f + m_y));
+
+    m_branchAlu->setPosition(sf::Vector2f(1100.f + m_x, 100.f + m_y));
+    
     m_instructionMemory.position = {m_x + 250.f, m_y + 500.f};
     m_instructionMemory.size = {150.f, 150.f};
 
     m_registers.position = {m_x + 750.f, m_y + 500.f};
     m_registers.size = {150.f, 250.f};
+
+    m_dataAlu->setPosition(sf::Vector2f(1150.f + m_x, 500.f + m_y));
+    m_dataAlu->setAluScale(sf::Vector2f(2.f, 2.f));
 
     m_dataMemory.position = {m_x + 1300.f, m_y + 550.f};
     m_dataMemory.size = {150.f, 200.f};
@@ -137,7 +142,7 @@ void DatapathView::update() {
 }
 
 void DatapathView::draw(sf::RenderWindow& window) {
-    // Draw wires first (so they appear behind components)
+    // Draw wires first so they appear behind components
     // for (const auto& wire : m_wires) {
     //     drawWire(window, wire);
     // }
@@ -156,6 +161,8 @@ void DatapathView::draw(sf::RenderWindow& window) {
     drawALU(window, m_pcAlu);
     drawALU(window, m_branchAlu);
     drawALU(window, m_dataAlu);
+
+    drawMux(window, m_regMux);
     // Draw wire labels on top of everything
     // for (const auto& wire : m_wires) {
     //     if (!wire.label.empty()) {
@@ -231,6 +238,12 @@ void DatapathView::drawALU(sf::RenderWindow& window, std::unique_ptr<ALUShape>& 
   alu->setFillColor(color);
   sf::RenderStates states;
   alu->draw(window, states);
+}
+
+void DatapathView::drawMux(sf::RenderWindow& window, std::unique_ptr<MuxShape>& mux, sf::Color color) {
+  mux->setFillColor(color);
+  sf::RenderStates states;
+  mux->draw(window, states);
 }
 
 void DatapathView::drawWire(sf::RenderWindow& window, const Wire& wire) {
