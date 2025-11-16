@@ -26,6 +26,7 @@ cmake_install.cmake
 Makefile
 *.cmake
 !CMakeLists.txt
+compile_commands.json
 
 # Testing
 Testing/
@@ -38,6 +39,7 @@ docs/latex/
 
 # Misc
 *.log
+.cache
 
 # CLI history
 .ez_arch_history
