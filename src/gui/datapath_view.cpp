@@ -1,6 +1,8 @@
 #include "gui/datapath_view.hpp"
 
+#include <SFML/System/Vector2.hpp>
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace ez_arch {
@@ -27,6 +29,8 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
   m_jumpMux = std::make_unique<MuxShape>(m_font, true);
   m_branchMux = std::make_unique<MuxShape>(m_font);
   m_writeMux = std::make_unique<MuxShape>(m_font, true);
+
+  m_andGate = std::make_unique<AndGateShape>();
 
   calculateLayout();
   setupWires();
@@ -148,14 +152,16 @@ void DatapathView::calculateLayout() {
   m_ALUControl->setRadius(sf::Vector2f(50.f, 50.f));
   m_ALUControl->setPosition(sf::Vector2f(m_x + 1100.f, m_y + 800.f));
 
-  m_branchMux->setPosition(sf::Vector2f(1200.f + m_x, 70.f + m_y));
+  m_branchMux->setPosition(sf::Vector2f(1350.f + m_x, 70.f + m_y));
 
-  m_jumpMux->setPosition(sf::Vector2f(1350.f + m_x, 70.f + m_y));
+  m_andGate->setPosition(sf::Vector2f(1300.f + m_x, 200.f + m_y));
 
-  m_dataMemory.position = {m_x + 1300.f, m_y + 550.f};
+  m_jumpMux->setPosition(sf::Vector2f(1450.f + m_x, 70.f + m_y));
+
+  m_dataMemory.position = {m_x + 1350.f, m_y + 550.f};
   m_dataMemory.size = {150.f, 200.f};
 
-  m_writeMux->setPosition(sf::Vector2f(1500.f + m_x, 610.f + m_y));
+  m_writeMux->setPosition(sf::Vector2f(1550.f + m_x, 610.f + m_y));
 }
 
 void DatapathView::setupWires() { m_wires.clear(); }
@@ -191,6 +197,8 @@ void DatapathView::draw(sf::RenderWindow& window) {
   drawMux(window, m_branchMux);
   drawMux(window, m_jumpMux);
   drawMux(window, m_writeMux);
+
+  drawGate(window, m_andGate);
   // Draw wire labels on top of everything
   // for (const auto& wire : m_wires) {
   //     if (!wire.label.empty()) {
@@ -280,6 +288,14 @@ void DatapathView::drawMux(sf::RenderWindow& window,
   mux->setFillColor(color);
   sf::RenderStates states;
   mux->draw(window, states);
+}
+
+void DatapathView::drawGate(sf::RenderWindow& window,
+                            std::unique_ptr<AndGateShape>& gate,
+                            sf::Color color) {
+  gate->setFillColor(color);
+  sf::RenderStates states;
+  gate->draw(window, states);
 }
 
 void DatapathView::drawWire(sf::RenderWindow& window, const Wire& wire) {

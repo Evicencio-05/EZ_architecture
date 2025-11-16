@@ -1,6 +1,15 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
+#include <SFML/Graphics/RenderStates.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Transformable.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
 #include <string>
@@ -321,13 +330,71 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
   }
 };
 
-class AndGateShape {
+class AndGateShape : public sf::Drawable, public sf::Transformable {
  public:
-  AndGateShape();
+  AndGateShape(sf::Color fillColor = sf::Color::White,
+               sf::Color outlineColor = sf::Color::Black)
+      : m_fillColor(fillColor),
+        m_outlineColor(outlineColor),
+        m_circle(25.f),
+        m_rect(sf::Vector2f(20.f, 50.f)),
+        m_outlineVertices(sf::PrimitiveType::Lines, 6) {
+    updateOutlineColor();
+    updateFillColor();
+    updatePosition();
+  }
+
+  void setFillColor(sf::Color fillColor) {
+    m_fillColor = fillColor;
+    updateFillColor();
+  }
+
+  void setOutlineColor(sf::Color outlineColor) {
+    m_outlineColor = outlineColor;
+    updateOutlineColor();
+  }
+
+  void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
+    states.transform *= getTransform();
+    target.draw(m_circle, states);
+    target.draw(m_rect, states);
+    target.draw(m_outlineVertices, states);
+  }
 
  private:
-  sf::Vector2f m_topInput;
-  sf::Vector2f m_bottomInput;
+  sf::Color m_fillColor;
+  sf::Color m_outlineColor;
+  sf::CircleShape m_circle;
+  sf::RectangleShape m_rect;
+  sf::VertexArray m_outlineVertices;
+  // sf::Vector2f m_topInput  // For wires in the future
+  // sf::Vector2f m_bottomInput; // For wires in the future
+
+  void updateFillColor() {
+    m_circle.setFillColor(m_fillColor);
+    m_rect.setFillColor(m_fillColor);
+  }
+
+  void updateOutlineColor() {
+    m_circle.setOutlineColor(m_outlineColor);
+    m_circle.setOutlineThickness(1.f);
+
+    for (size_t i = 0; i < 6; ++i) {
+      m_outlineVertices[i].color = m_outlineColor;
+    }
+  }
+
+  void updatePosition() {
+    m_circle.setPosition(sf::Vector2f(0, 0));
+    m_rect.setPosition(sf::Vector2f(0, 0));
+
+    m_outlineVertices[0].position = sf::Vector2f(25.f, 0);
+    m_outlineVertices[1].position = sf::Vector2f(0, 0);
+    m_outlineVertices[2].position = sf::Vector2f(0, 0);
+    m_outlineVertices[3].position = sf::Vector2f(0, 50.f);
+    m_outlineVertices[4].position = sf::Vector2f(0, 51.f);
+    m_outlineVertices[5].position = sf::Vector2f(25.f, 51.f);
+  }
 };
 
 // TODO: Create another shape for lines with lables.
