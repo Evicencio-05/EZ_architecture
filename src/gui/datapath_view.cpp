@@ -1,11 +1,21 @@
 #include "gui/datapath_view.hpp"
 
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/Vertex.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <iostream>
 #include <memory>
 #include <string>
 
 namespace ez_arch {
+
+static void centerText(sf::Text& label) {
+  sf::FloatRect textBounds = label.getLocalBounds();
+  label.setOrigin({textBounds.position.x + textBounds.size.x / 2.0f,
+                   textBounds.position.y + textBounds.size.y / 2.0f});
+}
 
 DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
     : m_cpu(cpu),
@@ -31,6 +41,8 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
   m_writeMux = std::make_unique<MuxShape>(m_font, true);
 
   m_andGate = std::make_unique<AndGateShape>();
+
+  m_wires = {};
 
   calculateLayout();
   setupWires();
@@ -117,7 +129,7 @@ void DatapathView::drawScaffolding(sf::RenderWindow& window,
 
 void DatapathView::calculateLayout() {
   // Layout the datapath components in a logical flow (left to right)
-  m_pcBox.position = {m_x + 100.f, m_y + 500.f};
+  m_pcBox.position = {m_x + 100.f, m_y + 485.f};
   m_pcBox.size = {50.f, 100.f};
 
   m_pcAlu->setPosition(sf::Vector2f(350.f + m_x, 75.f + m_y));
@@ -146,7 +158,7 @@ void DatapathView::calculateLayout() {
 
   m_dataMux->setPosition(sf::Vector2f(1050.f + m_x, 600.f + m_y));
 
-  m_dataAlu->setPosition(sf::Vector2f(1150.f + m_x, 500.f + m_y));
+  m_dataAlu->setPosition(sf::Vector2f(1150.f + m_x, 490.f + m_y));
   m_dataAlu->setAluScale(sf::Vector2f(2.f, 2.f));
 
   m_ALUControl->setRadius(sf::Vector2f(50.f, 50.f));
@@ -162,9 +174,19 @@ void DatapathView::calculateLayout() {
   m_dataMemory.size = {150.f, 200.f};
 
   m_writeMux->setPosition(sf::Vector2f(1550.f + m_x, 610.f + m_y));
+  std::cout << "Vertice: x = " << m_x << " | y = " << m_y << '\n';
 }
 
-void DatapathView::setupWires() { m_wires.clear(); }
+void DatapathView::setupWires() {
+  m_wires[0].vertices->append(sf::Vertex{{150.f + m_x, 535.f + m_y}});
+  m_wires[0].vertices->append(sf::Vertex{{250.f + m_x, 535.f + m_y}});
+  std::cout << "Vertice: x = " << m_wires[0].vertices->operator[](1).position.x
+            << " | y = " << m_wires[0].vertices->operator[](1).position.y
+            << '\n';
+  std::cout << "Vertice: x = " << m_x << " | y = " << m_y << '\n';
+}
+
+// TODO: Need to only update wire position when updatig the view
 
 void DatapathView::update() {
   // Update will be used to highlight active paths based on current instruction
@@ -172,9 +194,9 @@ void DatapathView::update() {
 
 void DatapathView::draw(sf::RenderWindow& window) {
   // Draw wires first so they appear behind components
-  // for (const auto& wire : m_wires) {
-  //     drawWire(window, wire);
-  // }
+  for (auto& wire : m_wires) {
+    drawWire(window, wire);
+  }
 
   // Draw all major components
   drawComponentBox(window, m_pcBox, sf::Color::White);
@@ -298,71 +320,65 @@ void DatapathView::drawGate(sf::RenderWindow& window,
   gate->draw(window, states);
 }
 
-void DatapathView::drawWire(sf::RenderWindow& window, const Wire& wire) {
+void DatapathView::drawWire(sf::RenderWindow& window, Wire& wire) {
   // Determine color based on active state
-  sf::Color lineColor = wire.active ? sf::Color::Yellow : wire.color;
+  sf::Color lineColor =
+      wire.active ? wire.color
+                  : sf::Color(wire.color.r, wire.color.g, wire.color.b, 75);
 
   // Draw the line
-  sf::Vertex line[] = {sf::Vertex{{wire.start.x, wire.start.y}, lineColor},
-                       sf::Vertex{{wire.end.x, wire.end.y}, lineColor}};
-
-  // Make active wires thicker by drawing multiple lines
-  if (wire.active) {
-    sf::Vertex thickLine1[] = {
-        sf::Vertex{{wire.start.x + 1.f, wire.start.y}, lineColor},
-        sf::Vertex{{wire.end.x + 1.f, wire.end.y}, lineColor}};
-    sf::Vertex thickLine2[] = {
-        sf::Vertex{{wire.start.x, wire.start.y + 1.f}, lineColor},
-        sf::Vertex{{wire.end.x, wire.end.y + 1.f}, lineColor}};
-    window.draw(thickLine1, 2, sf::PrimitiveType::Lines);
-    window.draw(thickLine2, 2, sf::PrimitiveType::Lines);
+  size_t length = wire.vertices->getVertexCount();
+  for (size_t i = 0; i < length; ++i) {
+    wire.vertices->operator[](i).color = lineColor;
   }
-
-  window.draw(line, 2, sf::PrimitiveType::Lines);
+  window.draw(*wire.vertices);
 
   // Draw arrowhead at end
-  sf::CircleShape arrow(wire.active ? 4.f : 3.f);
-  arrow.setOrigin({arrow.getRadius(), arrow.getRadius()});
-  arrow.setPosition(wire.end);
-  arrow.setFillColor(lineColor);
-  window.draw(arrow);
+  // if (!wire.connection) {
+  //   sf::Vector2f backPositon = wire.vertices[length - 1].position;
+  //   sf::VertexArray arrowhead(sf::PrimitiveType::Triangles, 3);
+  //   arrowhead[0].position =
+  //       sf::Vector2f(backPositon.x - 5.f, backPositon.y - 6.f);
+  //   arrowhead[0].color = lineColor;
+  //   arrowhead[1].position = backPositon;
+  //   arrowhead[1].color = lineColor;
+  //   arrowhead[2].position =
+  //       sf::Vector2f(backPositon.x - 5.f, backPositon.y + 5.f);
+  //   arrowhead[2].color = lineColor;
+  //
+  //   window.draw(arrowhead);
+  // }
 }
 
 void DatapathView::drawWireLabel(sf::RenderWindow& window, const Wire& wire) {
-  if (wire.label.empty()) return;
-
-  // Calculate midpoint of wire
-  sf::Vector2f midpoint = {(wire.start.x + wire.end.x) / 2.f,
-                           (wire.start.y + wire.end.y) / 2.f};
-
-  // Create label text
-  sf::Text label(m_font);
-  label.setString(wire.label);
-  label.setCharacterSize(10);
-  label.setFillColor(sf::Color::White);
-
-  // Create background box for label
-  sf::FloatRect textBounds = label.getLocalBounds();
-  sf::RectangleShape background(
-      {textBounds.size.x + 6.f, textBounds.size.y + 6.f});
-  background.setPosition({midpoint.x - textBounds.size.x / 2.f - 3.f,
-                          midpoint.y - textBounds.size.y / 2.f - 3.f});
-  background.setFillColor(sf::Color(40, 40, 50, 220));  // Semi-transparent
-  background.setOutlineColor(wire.color);
-  background.setOutlineThickness(1.f);
-
-  // Position label at midpoint
-  label.setPosition({midpoint.x - textBounds.size.x / 2.f,
-                     midpoint.y - textBounds.size.y / 2.f});
-
-  window.draw(background);
-  window.draw(label);
-}
-
-void DatapathView::centerText(sf::Text& label) {
-  sf::FloatRect textBounds = label.getLocalBounds();
-  label.setOrigin({textBounds.position.x + textBounds.size.x / 2.0f,
-                   textBounds.position.y + textBounds.size.y / 2.0f});
+  // if (wire.label.empty()) return;
+  //
+  // // Calculate midpoint of wire
+  // sf::Vector2f midpoint = {(wire.start.x + wire.end.x) / 2.f,
+  //                          (wire.start.y + wire.end.y) / 2.f};
+  //
+  // // Create label text
+  // sf::Text label(m_font);
+  // label.setString(wire.label);
+  // label.setCharacterSize(10);
+  // label.setFillColor(sf::Color::White);
+  //
+  // // Create background box for label
+  // sf::FloatRect textBounds = label.getLocalBounds();
+  // sf::RectangleShape background(
+  //     {textBounds.size.x + 6.f, textBounds.size.y + 6.f});
+  // background.setPosition({midpoint.x - textBounds.size.x / 2.f - 3.f,
+  //                         midpoint.y - textBounds.size.y / 2.f - 3.f});
+  // background.setFillColor(sf::Color(40, 40, 50, 220));  // Semi-transparent
+  // background.setOutlineColor(wire.color);
+  // background.setOutlineThickness(1.f);
+  //
+  // // Position label at midpoint
+  // label.setPosition({midpoint.x - textBounds.size.x / 2.f,
+  //                    midpoint.y - textBounds.size.y / 2.f});
+  //
+  // window.draw(background);
+  // window.draw(label);
 }
 
 }  // namespace ez_arch

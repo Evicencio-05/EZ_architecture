@@ -1,6 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <memory>
 #include <vector>
 
@@ -38,13 +40,13 @@ class DatapathView {
     std::array<std::string, 4> outputs;
 
     // Helper to get connection points
-    sf::Vector2f getLeft(size_t inputPos, float characterSize) const {
+    sf::Vector2f getLeft(size_t inputPos, float characterSize = 12) const {
       float yOffsetScale = static_cast<float>(
           ((inputPos * 2) + 1) / static_cast<float>(inputs.size() * 2));
       return {position.x + 5.f,
               position.y + (size.y * yOffsetScale - characterSize)};
     }
-    sf::Vector2f getRight(size_t outputPos, float characterSize,
+    sf::Vector2f getRight(size_t outputPos, float characterSize = 12,
                           float xOffset = 0) const {
       float yOffsetScale =
           static_cast<float>(((outputPos * 2) + 1) / static_cast<float>(4 * 2));
@@ -64,15 +66,18 @@ class DatapathView {
 
   // Wire/Connection definition
   struct Wire {
-    sf::Vector2f start;
-    sf::Vector2f end;
+    Wire()
+      : vertices(std::make_unique<sf::VertexArray>(sf::PrimitiveType::LineStrip)),
+      label(""),
+      color(0, 0, 0),
+      active(true),
+      connection(false) {}
+
+    std::unique_ptr<sf::VertexArray> vertices;
     std::string label;
     sf::Color color;
-    bool active;  // Highlight when active
-
-    Wire(sf::Vector2f s, sf::Vector2f e, std::string lbl = "",
-         sf::Color col = sf::Color(150, 150, 150), bool act = false)
-        : start(s), end(e), label(lbl), color(col), active(act) {}
+    bool active;      // Highlight when active
+    bool connection;  // True if the wire connects to another => no arrow at end
   };
 
   ComponentBox m_pcBox;
@@ -98,7 +103,7 @@ class DatapathView {
 
   std::unique_ptr<AndGateShape> m_andGate;
   // All wire connections
-  std::vector<Wire> m_wires;
+  std::array<Wire, 50> m_wires;
 
   // Drawing helpers
   void calculateLayout();
@@ -112,10 +117,9 @@ class DatapathView {
   void drawMux(sf::RenderWindow& window, std::unique_ptr<MuxShape>& mux,
                sf::Color color = sf::Color::White);
   void drawGate(sf::RenderWindow& window, std::unique_ptr<AndGateShape>& gate,
-               sf::Color color = sf::Color::White);
-  void drawWire(sf::RenderWindow& window, const Wire& wire);
+                sf::Color color = sf::Color::White);
+  void drawWire(sf::RenderWindow& window,  Wire& wire);
   void drawWireLabel(sf::RenderWindow& window, const Wire& wire);
-  void centerText(sf::Text& text);
 };
 
 }  // namespace ez_arch
