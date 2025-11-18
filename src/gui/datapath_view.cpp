@@ -6,7 +6,6 @@
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -16,6 +15,7 @@
 
 namespace ez_arch {
 
+// TODO: Update to draw and center
 static void centerText(sf::Text& label) {
   sf::FloatRect textBounds = label.getLocalBounds();
   label.setOrigin({textBounds.position.x + textBounds.size.x / 2.0f,
@@ -666,5 +666,7 @@ void DatapathView::setupWires() {
 void DatapathView::setupWireLabels() {
   m_wireLabels[0] = { 2, "4", true };
 }
+
+// TODO: Draw label function
 
 }  // namespace ez_arch
