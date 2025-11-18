@@ -12,6 +12,20 @@ if(USE_LINENOISE)
     endif()
 endif()
 
+# SFML GUI version (optional)
+if (ENABLE_GUI)
+    include(FetchContent)
+    
+    FetchContent_Declare(
+        SFML
+        GIT_REPOSITORY https://github.com/SFML/SFML.git
+        GIT_TAG 3.0.0
+    )
+
+    FetchContent_MakeAvailable(SFML)
+
+endif()
+
 # Core library
 add_library(ez_arch_core STATIC
     core/register_file.cpp
@@ -35,25 +49,30 @@ if(USE_LINENOISE)
     target_link_libraries(ez_arch_core PUBLIC linenoise)
 endif()
 
-add_executable(ez_architecture_gui
-    gui/main_gui.cpp
-    gui/cpu_visualizer.cpp
-    gui/register_view.cpp
-    gui/memory_view.cpp
-    gui/instruction_view.cpp
-    gui/datapath_view.cpp
-    gui/button.cpp
-    gui/instruction_cache.cpp
-    gui/instruction_builder_view.cpp
-    gui/instruction_queue_view.cpp
-)
+if (ENABLE_GUI)
+    target_compile_definitions(ez_arch_core PUBLIC ENABLE_GUI)
+    target_link_libraries(ez_arch_core PUBLIC SFML::Graphics SFML::Window SFML::System)
+endif()
 
-target_link_libraries(ez_architecture_gui
-    ez_arch_core
-    SFML::Graphics
-    SFML::Window
-    SFML::System
-)
+# add_executable(ez_architecture_gui
+#     gui/main_gui.cpp
+#     gui/cpu_visualizer.cpp
+#     gui/register_view.cpp
+#     gui/memory_view.cpp
+#     gui/instruction_view.cpp
+#     gui/datapath_view.cpp
+#     gui/button.cpp
+#     gui/instruction_cache.cpp
+#     gui/instruction_builder_view.cpp
+#     gui/instruction_queue_view.cpp
+# )
+
+# target_link_libraries(ez_architecture_gui
+#     ez_arch_core
+#     SFML::Graphics
+#     SFML::Window
+#     SFML::System
+# )
 
 # CLI executable
 add_executable(ez_architecture_cli

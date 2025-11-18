@@ -15,6 +15,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Build options
 option(USE_LINENOISE "Enable linenoise for enhanced CLI (command history, line editing)" ON)
+option(ENABLE_GUI "Build with SFML GUI verison" ON)
 
 # Compiler options
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
