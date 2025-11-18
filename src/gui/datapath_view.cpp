@@ -1,5 +1,4 @@
 #include "gui/datapath_view.hpp"
-#include "gui/style.hpp"
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
@@ -12,6 +11,8 @@
 #include <iostream>
 #include <memory>
 #include <string>
+
+#include "gui/style.hpp"
 
 namespace ez_arch {
 
@@ -45,8 +46,6 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
   m_writeMux = std::make_unique<MuxShape>(m_font, true);
 
   m_andGate = std::make_unique<AndGateShape>();
-
-  m_wires = {};
 
   calculateLayout();
   setupWires();
@@ -196,9 +195,9 @@ void DatapathView::update() {
 
 void DatapathView::draw(sf::RenderWindow& window) {
   // Draw wires first so they appear behind components
-  for (auto& wire : m_wires) {
-    drawWire(window, wire);
-  }
+  // for (auto& wire : m_wires) {
+  //   drawWire(window, wire);
+  // }
 
   // Draw all major components
   drawComponentBox(window, m_pcBox, sf::Color::White);
@@ -224,6 +223,9 @@ void DatapathView::draw(sf::RenderWindow& window) {
 
   drawGate(window, m_andGate);
 
+  for (auto& wire : m_wires) {
+    drawWire(window, wire);
+  }
   // Draw wire labels on top of everything
   // for (const auto& wire : m_wires) {
   //     if (!wire.label.empty()) {
@@ -337,100 +339,100 @@ void DatapathView::drawWire(sf::RenderWindow& window, Wire& wire) {
   window.draw(*wire.vertices);
 
   // Used for identifying wires
-  // if (length >= 2) {
-  //   sf::Text beginning(m_font, wire.label, 15);
-  //   beginning.setFillColor(sf::Color::Black);
-  //   sf::Vector2f first = wire.vertices->operator[](0).position;
-  //   beginning.setPosition(first);
-  //   centerText(beginning);
-  //   window.draw(beginning);
-  //
-  //   sf::Text end(m_font, wire.label, 15);
-  //   end.setFillColor(sf::Color::Black);
-  //   sf::Vector2f last = wire.vertices->operator[](length - 1).position;
-  //   end.setPosition(last);
-  //   centerText(end);
-  //   window.draw(end);
-  // }
+  if (length >= 2) {
+    sf::Text beginning(m_font, wire.number, 15);
+    beginning.setFillColor(sf::Color::Black);
+    sf::Vector2f first = wire.vertices->operator[](0).position;
+    beginning.setPosition(first);
+    centerText(beginning);
+    window.draw(beginning);
+
+    sf::Text end(m_font, wire.number, 15);
+    end.setFillColor(sf::Color::Black);
+    sf::Vector2f last = wire.vertices->operator[](length - 1).position;
+    end.setPosition(last);
+    centerText(end);
+    window.draw(end);
+  }
 
   // Draw arrowhead at end
-  if (!wire.connection && !wire.no_arrow && length >= 2) {
-    sf::Vector2f backPositon = wire.vertices->operator[](length - 1).position;
-    sf::VertexArray arrowhead(sf::PrimitiveType::Triangles, 3);
-    arrowhead[0].position =
-        sf::Vector2f(backPositon.x - 5.f, backPositon.y - 6.f);
-    arrowhead[0].color = lineColor;
-    arrowhead[1].position = backPositon;
-    arrowhead[1].color = lineColor;
-    arrowhead[2].position =
-        sf::Vector2f(backPositon.x - 5.f, backPositon.y + 5.f);
-    arrowhead[2].color = lineColor;
-
-    window.draw(arrowhead);
-  }
+  // if (!wire.no_arrow && length >= 2) {
+  //   sf::Vector2f backPositon = wire.vertices->operator[](length -
+  //   1).position; sf::VertexArray arrowhead(sf::PrimitiveType::Triangles, 3);
+  //   arrowhead[0].position =
+  //       sf::Vector2f(backPositon.x - 5.f, backPositon.y - 6.f);
+  //   arrowhead[0].color = lineColor;
+  //   arrowhead[1].position = backPositon;
+  //   arrowhead[1].color = lineColor;
+  //   arrowhead[2].position =
+  //       sf::Vector2f(backPositon.x - 5.f, backPositon.y + 5.f);
+  //   arrowhead[2].color = lineColor;
+  //
+  //   window.draw(arrowhead);
+  // }
 }
 
 void DatapathView::setupWires() {
   // m_pcBox -> m_instructionMemory - Read Address
   m_wires[0].vertices->append(sf::Vertex{{150.f + m_x, 535.f + m_y}});
   m_wires[0].vertices->append(sf::Vertex{{250.f + m_x, 535.f + m_y}});
-  m_wires[0].label = "0";
+  m_wires[0].number = "0";
 
   // PC -> m_pcAlu - PC + 4
   m_wires[1].vertices->append(sf::Vertex{{175.f + m_x, 535.f + m_y}});
   m_wires[1].vertices->append(sf::Vertex{{175.f + m_x, 90.f + m_y}});
   m_wires[1].vertices->append(sf::Vertex{{350.f + m_x, 90.f + m_y}});
-  m_wires[1].label = "1";
+  m_wires[1].number = "1";
 
   // 4 -> m_pcAlu
   m_wires[2].vertices->append(sf::Vertex{{300.f + m_x, 150.f + m_y}});
   m_wires[2].vertices->append(sf::Vertex{{350.f + m_x, 150.f + m_y}});
-  m_wires[2].label = "2";
+  m_wires[2].number = "2";
 
   // I[31-0] -> m_control
   m_wires[3].vertices->append(sf::Vertex{{400.f + m_x, 560.f + m_y}});
   m_wires[3].vertices->append(sf::Vertex{{550.f + m_x, 560.f + m_y}});
   m_wires[3].vertices->append(sf::Vertex{{550.f + m_x, 340.f + m_y}});
   m_wires[3].vertices->append(sf::Vertex{{740.f + m_x, 340.f + m_y}});
-  m_wires[3].label = "3";
+  m_wires[3].number = "3";
 
   // I[25-21] -> m_registers - Read Reg 1
   m_wires[4].vertices->append(sf::Vertex{{550.f + m_x, 510.f + m_y}});
   m_wires[4].vertices->append(sf::Vertex{{750.f + m_x, 510.f + m_y}});
-  m_wires[4].label = "4";
+  m_wires[4].number = "4";
 
   // I[15-0] -> m_signExt
   m_wires[5].vertices->append(sf::Vertex{{550.f + m_x, 560.f + m_y}});
   m_wires[5].vertices->append(sf::Vertex{{550.f + m_x, 850.f + m_y}});
   m_wires[5].vertices->append(sf::Vertex{{800.f + m_x, 850.f + m_y}});
-  m_wires[5].label = "5";
+  m_wires[5].number = "5";
 
   // I[20-16] -> m_registers - Read Reg 2
   m_wires[6].vertices->append(sf::Vertex{{550.f + m_x, 575.f + m_y}});
   m_wires[6].vertices->append(sf::Vertex{{750.f + m_x, 575.f + m_y}});
-  m_wires[6].label = "6";
+  m_wires[6].number = "6";
 
   // I[20-16] -> m_regMux - 0
   m_wires[7].vertices->append(sf::Vertex{{625.f + m_x, 575.f + m_y}});
   m_wires[7].vertices->append(sf::Vertex{{625.f + m_x, 612.f + m_y}});
   m_wires[7].vertices->append(sf::Vertex{{675.f + m_x, 612.f + m_y}});
-  m_wires[7].label = "7";
+  m_wires[7].number = "7";
 
   // I[15-11] -> m_regMux - 1
   m_wires[8].vertices->append(sf::Vertex{{550.f + m_x, 677.f + m_y}});
   m_wires[8].vertices->append(sf::Vertex{{675.f + m_x, 677.f + m_y}});
-  m_wires[8].label = "8";
+  m_wires[8].number = "8";
 
   // regMux -> m_registers - Write Reg
   m_wires[9].vertices->append(sf::Vertex{{700.f + m_x, 640.f + m_y}});
   m_wires[9].vertices->append(sf::Vertex{{750.f + m_x, 640.f + m_y}});
-  m_wires[9].label = "9";
+  m_wires[9].number = "9";
 
   // I[31-26] -> m_jumpSL
   m_wires[10].vertices->append(sf::Vertex{{425.f + m_x, 560.f + m_y}});
   m_wires[10].vertices->append(sf::Vertex{{425.f + m_x, 75.f + m_y}});
   m_wires[10].vertices->append(sf::Vertex{{500.f + m_x, 75.f + m_y}});
-  m_wires[10].label = "10";
+  m_wires[10].number = "10";
 
   // JA[31-0] -> m_jumpMux - 1
   m_wires[11].vertices->append(sf::Vertex{{550.f + m_x, 75.f + m_y}});
@@ -439,7 +441,7 @@ void DatapathView::setupWires() {
   m_wires[11].vertices->append(sf::Vertex{{1420.f + m_x, 50.f + m_y}});
   m_wires[11].vertices->append(sf::Vertex{{1420.f + m_x, 85.f + m_y}});
   m_wires[11].vertices->append(sf::Vertex{{1450.f + m_x, 85.f + m_y}});
-  m_wires[11].label = "11";
+  m_wires[11].number = "11";
 
   // I[5-0] -> m_ALUControl
   m_wires[12].vertices->append(sf::Vertex{{700.f + m_x, 850.f + m_y}});
@@ -447,83 +449,83 @@ void DatapathView::setupWires() {
   m_wires[12].vertices->append(sf::Vertex{{1050.f + m_x, 925.f + m_y}});
   m_wires[12].vertices->append(sf::Vertex{{1050.f + m_x, 850.f + m_y}});
   m_wires[12].vertices->append(sf::Vertex{{1100.f + m_x, 850.f + m_y}});
-  m_wires[12].label = "12";
+  m_wires[12].number = "12";
 
   // m_registers - Read Data 1 -> m_dataAlu - Top
   m_wires[13].vertices->append(sf::Vertex{{900.f + m_x, 520.f + m_y}});
   m_wires[13].vertices->append(sf::Vertex{{1150.f + m_x, 520.f + m_y}});
-  m_wires[13].label = "13";
+  m_wires[13].number = "13";
 
   // m_registers - Read Data 2 -> m_dataMux - 0
   m_wires[14].vertices->append(sf::Vertex{{900.f + m_x, 640.f + m_y}});
   m_wires[14].vertices->append(sf::Vertex{{1000.f + m_x, 640.f + m_y}});
   m_wires[14].vertices->append(sf::Vertex{{1000.f + m_x, 612.f + m_y}});
   m_wires[14].vertices->append(sf::Vertex{{1050.f + m_x, 612.f + m_y}});
-  m_wires[14].label = "14";
+  m_wires[14].number = "14";
 
   // m_registers - Read Data 2 -> m_dataMemory - Write Data
   m_wires[15].vertices->append(sf::Vertex{{1000.f + m_x, 640.f + m_y}});
   m_wires[15].vertices->append(sf::Vertex{{1000.f + m_x, 725.f + m_y}});
   m_wires[15].vertices->append(sf::Vertex{{1350.f + m_x, 725.f + m_y}});
-  m_wires[15].label = "15";
+  m_wires[15].number = "15";
 
   // m_dataMux -> m_dataAlu - Bottom
   m_wires[16].vertices->append(sf::Vertex{{1075.f + m_x, 650.f + m_y}});
   m_wires[16].vertices->append(sf::Vertex{{1150.f + m_x, 650.f + m_y}});
-  m_wires[16].label = "16";
+  m_wires[16].number = "16";
 
   // m_signExt -> m_branchSL
   m_wires[17].vertices->append(sf::Vertex{{900.f + m_x, 850.f + m_y}});
   m_wires[17].vertices->append(sf::Vertex{{950.f + m_x, 850.f + m_y}});
   m_wires[17].vertices->append(sf::Vertex{{950.f + m_x, 175.f + m_y}});
   m_wires[17].vertices->append(sf::Vertex{{1000.f + m_x, 175.f + m_y}});
-  m_wires[17].label = "17";
+  m_wires[17].number = "17";
 
   // m_branchSL -> m_branchAlu - Bottom
   m_wires[18].vertices->append(sf::Vertex{{1050.f + m_x, 175.f + m_y}});
   m_wires[18].vertices->append(sf::Vertex{{1100.f + m_x, 175.f + m_y}});
-  m_wires[18].label = "18";
+  m_wires[18].number = "18";
 
   // m_pcAlu -> m_branchAlu - Top
   m_wires[19].vertices->append(sf::Vertex{{400.f + m_x, 125.f + m_y}});
   m_wires[19].vertices->append(sf::Vertex{{1100.f + m_x, 125.f + m_y}});
-  m_wires[19].label = "19";
+  m_wires[19].number = "19";
 
   // PC + 4[31-28] -> JA[31-0]
   m_wires[20].vertices->append(sf::Vertex{{700.f + m_x, 125.f + m_y}});
   m_wires[20].vertices->append(sf::Vertex{{700.f + m_x, 75.f + m_y}});
-  m_wires[20].label = "20";
+  m_wires[20].number = "20";
   m_wires[20].no_arrow = true;
 
   // PC + 4 -> m_branchMux - 0
   m_wires[21].vertices->append(sf::Vertex{{1050.f + m_x, 125.f + m_y}});
   m_wires[21].vertices->append(sf::Vertex{{1050.f + m_x, 80.f + m_y}});
   m_wires[21].vertices->append(sf::Vertex{{1350.f + m_x, 80.f + m_y}});
-  m_wires[21].label = "21";
+  m_wires[21].number = "21";
 
   // m_branchAlu -> m_branchMux - 1
   m_wires[22].vertices->append(sf::Vertex{{1150.f + m_x, 150.f + m_y}});
   m_wires[22].vertices->append(sf::Vertex{{1350.f + m_x, 150.f + m_y}});
-  m_wires[22].label = "22";
+  m_wires[22].number = "22";
 
   // m_branchMux -> m_jumpMux - 0
   m_wires[23].vertices->append(sf::Vertex{{1375.f + m_x, 120.f + m_y}});
   m_wires[23].vertices->append(sf::Vertex{{1420.f + m_x, 120.f + m_y}});
   m_wires[23].vertices->append(sf::Vertex{{1420.f + m_x, 150.f + m_y}});
   m_wires[23].vertices->append(sf::Vertex{{1450.f + m_x, 150.f + m_y}});
-  m_wires[23].label = "23";
+  m_wires[23].number = "23";
 
   // m_dataAlu - Zero -> m_andGate - Bottom
   m_wires[24].vertices->append(sf::Vertex{{1250.f + m_x, 560.f + m_y}});
   m_wires[24].vertices->append(sf::Vertex{{1275.f + m_x, 560.f + m_y}});
   m_wires[24].vertices->append(sf::Vertex{{1275.f + m_x, 235.f + m_y}});
   m_wires[24].vertices->append(sf::Vertex{{1300.f + m_x, 235.f + m_y}});
-  m_wires[24].label = "24";
+  m_wires[24].number = "24";
 
   // m_dataAlu - Result -> m_dataMemory - Address
   m_wires[25].vertices->append(sf::Vertex{{1250.f + m_x, 615.f + m_y}});
   m_wires[25].vertices->append(sf::Vertex{{1350.f + m_x, 615.f + m_y}});
-  m_wires[25].label = "25";
+  m_wires[25].number = "25";
 
   // m_dataAlu - Result -> m_writeMux - -1
   m_wires[26].vertices->append(sf::Vertex{{1320.f + m_x, 615.f + m_y}});
@@ -531,12 +533,12 @@ void DatapathView::setupWires() {
   m_wires[26].vertices->append(sf::Vertex{{1530.f + m_x, 805.f + m_y}});
   m_wires[26].vertices->append(sf::Vertex{{1530.f + m_x, 690.f + m_y}});
   m_wires[26].vertices->append(sf::Vertex{{1550.f + m_x, 690.f + m_y}});
-  m_wires[26].label = "26";
+  m_wires[26].number = "26";
 
   // m_dataMemory - Read Data -> m_writeMux - 0
   m_wires[27].vertices->append(sf::Vertex{{1500.f + m_x, 625.f + m_y}});
   m_wires[27].vertices->append(sf::Vertex{{1550.f + m_x, 625.f + m_y}});
-  m_wires[27].label = "27";
+  m_wires[27].number = "27";
 
   // m_writeMux -> m_registers - Write Data
   m_wires[28].vertices->append(sf::Vertex{{1575.f + m_x, 620.f + m_y}});
@@ -545,7 +547,7 @@ void DatapathView::setupWires() {
   m_wires[28].vertices->append(sf::Vertex{{725.f + m_x, 785.f + m_y}});
   m_wires[28].vertices->append(sf::Vertex{{725.f + m_x, 700.f + m_y}});
   m_wires[28].vertices->append(sf::Vertex{{750.f + m_x, 700.f + m_y}});
-  m_wires[28].label = "28";
+  m_wires[28].number = "28";
 
   // m_jumpMux -> m_pcBox
   m_wires[29].vertices->append(sf::Vertex{{1475.f + m_x, 115.f + m_y}});
@@ -554,12 +556,12 @@ void DatapathView::setupWires() {
   m_wires[29].vertices->append(sf::Vertex{{50.f + m_x, 20.f + m_y}});
   m_wires[29].vertices->append(sf::Vertex{{50.f + m_x, 535.f + m_y}});
   m_wires[29].vertices->append(sf::Vertex{{100.f + m_x, 535.f + m_y}});
-  m_wires[29].label = "29";
+  m_wires[29].number = "29";
 
   // m_signExt -> m_dataMux - 0
   m_wires[30].vertices->append(sf::Vertex{{950.f + m_x, 680.f + m_y}});
   m_wires[30].vertices->append(sf::Vertex{{1050.f + m_x, 680.f + m_y}});
-  m_wires[30].label = "30";
+  m_wires[30].number = "30";
 
   // RegDst -> m_regMux - Control
   m_wires[31].vertices->append(sf::Vertex{{800.f + m_x, 240.f + m_y}});
@@ -569,7 +571,7 @@ void DatapathView::setupWires() {
   m_wires[31].vertices->append(sf::Vertex{{500.f + m_x, 710.f + m_y}});
   m_wires[31].vertices->append(sf::Vertex{{690.f + m_x, 710.f + m_y}});
   m_wires[31].vertices->append(sf::Vertex{{690.f + m_x, 685.f + m_y}});
-  m_wires[31].label = "31";
+  m_wires[31].number = "31";
   m_wires[31].no_arrow = true;
   m_wires[31].color = CONTROL_WIRE_COLOR;
 
@@ -579,7 +581,7 @@ void DatapathView::setupWires() {
   m_wires[32].vertices->append(sf::Vertex{{925.f + m_x, 35.f + m_y}});
   m_wires[32].vertices->append(sf::Vertex{{1465.f + m_x, 35.f + m_y}});
   m_wires[32].vertices->append(sf::Vertex{{1465.f + m_x, 80.f + m_y}});
-  m_wires[32].label = "32";
+  m_wires[32].number = "32";
   m_wires[32].no_arrow = true;
   m_wires[32].color = CONTROL_WIRE_COLOR;
 
@@ -588,7 +590,7 @@ void DatapathView::setupWires() {
   m_wires[33].vertices->append(sf::Vertex{{1200.f + m_x, 290.f + m_y}});
   m_wires[33].vertices->append(sf::Vertex{{1200.f + m_x, 215.f + m_y}});
   m_wires[33].vertices->append(sf::Vertex{{1300.f + m_x, 215.f + m_y}});
-  m_wires[33].label = "33";
+  m_wires[33].number = "33";
   m_wires[33].no_arrow = true;
   m_wires[33].color = CONTROL_WIRE_COLOR;
 
@@ -596,7 +598,7 @@ void DatapathView::setupWires() {
   m_wires[34].vertices->append(sf::Vertex{{1350.f + m_x, 225.f + m_y}});
   m_wires[34].vertices->append(sf::Vertex{{1365.f + m_x, 225.f + m_y}});
   m_wires[34].vertices->append(sf::Vertex{{1365.f + m_x, 160.f + m_y}});
-  m_wires[34].label = "34";
+  m_wires[34].number = "34";
   m_wires[34].no_arrow = true;
   m_wires[34].color = CONTROL_WIRE_COLOR;
 
@@ -606,7 +608,7 @@ void DatapathView::setupWires() {
   m_wires[35].vertices->append(sf::Vertex{{1625.f + m_x, 770.f + m_y}});
   m_wires[35].vertices->append(sf::Vertex{{1425.f + m_x, 770.f + m_y}});
   m_wires[35].vertices->append(sf::Vertex{{1425.f + m_x, 740.f + m_y}});
-  m_wires[35].label = "35";
+  m_wires[35].number = "35";
   m_wires[35].no_arrow = true;
   m_wires[35].color = CONTROL_WIRE_COLOR;
 
@@ -614,7 +616,7 @@ void DatapathView::setupWires() {
   m_wires[36].vertices->append(sf::Vertex{{820.f + m_x, 340.f + m_y}});
   m_wires[36].vertices->append(sf::Vertex{{1565.f + m_x, 340.f + m_y}});
   m_wires[36].vertices->append(sf::Vertex{{1565.f + m_x, 610.f + m_y}});
-  m_wires[36].label = "36";
+  m_wires[36].number = "36";
   m_wires[36].no_arrow = true;
   m_wires[36].color = CONTROL_WIRE_COLOR;
 
@@ -624,7 +626,7 @@ void DatapathView::setupWires() {
   m_wires[37].vertices->append(sf::Vertex{{975.f + m_x, 910.f + m_y}});
   m_wires[37].vertices->append(sf::Vertex{{1150.f + m_x, 910.f + m_y}});
   m_wires[37].vertices->append(sf::Vertex{{1150.f + m_x, 900.f + m_y}});
-  m_wires[37].label = "37";
+  m_wires[37].number = "37";
   m_wires[37].no_arrow = true;
   m_wires[37].color = CONTROL_WIRE_COLOR;
 
@@ -632,7 +634,7 @@ void DatapathView::setupWires() {
   m_wires[38].vertices->append(sf::Vertex{{1200.f + m_x, 850.f + m_y}});
   m_wires[38].vertices->append(sf::Vertex{{1225.f + m_x, 850.f + m_y}});
   m_wires[38].vertices->append(sf::Vertex{{1225.f + m_x, 650.f + m_y}});
-  m_wires[38].label = "38";
+  m_wires[38].number = "38";
   m_wires[38].no_arrow = true;
   m_wires[38].color = CONTROL_WIRE_COLOR;
 
@@ -640,7 +642,7 @@ void DatapathView::setupWires() {
   m_wires[39].vertices->append(sf::Vertex{{810.f + m_x, 390.f + m_y}});
   m_wires[39].vertices->append(sf::Vertex{{1425.f + m_x, 390.f + m_y}});
   m_wires[39].vertices->append(sf::Vertex{{1425.f + m_x, 550.f + m_y}});
-  m_wires[39].label = "39";
+  m_wires[39].number = "39";
   m_wires[39].no_arrow = true;
   m_wires[39].color = CONTROL_WIRE_COLOR;
 
@@ -648,7 +650,7 @@ void DatapathView::setupWires() {
   m_wires[40].vertices->append(sf::Vertex{{800.f + m_x, 415.f + m_y}});
   m_wires[40].vertices->append(sf::Vertex{{1065.f + m_x, 415.f + m_y}});
   m_wires[40].vertices->append(sf::Vertex{{1065.f + m_x, 600.f + m_y}});
-  m_wires[40].label = "40";
+  m_wires[40].number = "40";
   m_wires[40].no_arrow = true;
   m_wires[40].color = CONTROL_WIRE_COLOR;
 
@@ -656,10 +658,13 @@ void DatapathView::setupWires() {
   m_wires[41].vertices->append(sf::Vertex{{800.f + m_x, 440.f + m_y}});
   m_wires[41].vertices->append(sf::Vertex{{885.f + m_x, 440.f + m_y}});
   m_wires[41].vertices->append(sf::Vertex{{885.f + m_x, 500.f + m_y}});
-  m_wires[41].label = "41";
+  m_wires[41].number = "41";
   m_wires[41].no_arrow = true;
   m_wires[41].color = CONTROL_WIRE_COLOR;
+}
 
+void DatapathView::setupWireLabels() {
+  m_wireLabels[0] = { 2, "4", true };
 }
 
 }  // namespace ez_arch
