@@ -106,7 +106,7 @@ class DatapathView {
 
   std::unique_ptr<AndGateShape> m_andGate;
   // All wire connections
-  std::array<Wire, 40> m_wires;
+  std::array<Wire, 42> m_wires;
 
   // Drawing helpers
   void calculateLayout();
