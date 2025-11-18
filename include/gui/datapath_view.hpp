@@ -67,17 +67,20 @@ class DatapathView {
   // Wire/Connection definition
   struct Wire {
     Wire()
-      : vertices(std::make_unique<sf::VertexArray>(sf::PrimitiveType::LineStrip)),
-      label(""),
-      color(0, 0, 0),
-      active(true),
-      connection(false) {}
+        : vertices(
+              std::make_unique<sf::VertexArray>(sf::PrimitiveType::LineStrip)),
+          label(""),
+          color(0, 0, 0),
+          active(true),
+          connection(false),
+          no_arrow(false) {}
 
     std::unique_ptr<sf::VertexArray> vertices;
     std::string label;
     sf::Color color;
     bool active;      // Highlight when active
     bool connection;  // True if the wire connects to another => no arrow at end
+    bool no_arrow;
   };
 
   ComponentBox m_pcBox;
@@ -103,11 +106,12 @@ class DatapathView {
 
   std::unique_ptr<AndGateShape> m_andGate;
   // All wire connections
-  std::array<Wire, 50> m_wires;
+  std::array<Wire, 40> m_wires;
 
   // Drawing helpers
   void calculateLayout();
   void setupWires();  // Define all wire connections
+  void updateWirePosition(float x, float y);
   void drawComponentBox(sf::RenderWindow& window, const ComponentBox& box,
                         sf::Color color);
   void drawEllipse(sf::RenderWindow& window,
@@ -118,8 +122,7 @@ class DatapathView {
                sf::Color color = sf::Color::White);
   void drawGate(sf::RenderWindow& window, std::unique_ptr<AndGateShape>& gate,
                 sf::Color color = sf::Color::White);
-  void drawWire(sf::RenderWindow& window,  Wire& wire);
-  void drawWireLabel(sf::RenderWindow& window, const Wire& wire);
+  void drawWire(sf::RenderWindow& window, Wire& wire);
 };
 
 }  // namespace ez_arch
