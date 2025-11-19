@@ -2,10 +2,12 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/Text.hpp>
 #include <SFML/Graphics/Vertex.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Window.hpp>
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -49,6 +51,7 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
 
   calculateLayout();
   setupWires();
+  setupWireLabels();
 
   m_pcBox.label = "PC";
 
@@ -91,6 +94,7 @@ DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
 
 void DatapathView::setPosition(float x, float y) {
   updateWirePosition(x, y);
+  updateWireLabelPosition(x, y);
   m_x = x;
   m_y = y;
   calculateLayout();
@@ -184,8 +188,16 @@ void DatapathView::updateWirePosition(float x, float y) {
     for (size_t i = 0; i < length; ++i) {
       sf::Vector2f currentPosition = wire.vertices->operator[](i).position;
       wire.vertices->operator[](i).position = sf::Vector2f(
-          currentPosition.x - (m_x - x), currentPosition.y - (m_y - y));
+          currentPosition.x - m_x + x, currentPosition.y - m_y + y);
     }
+  }
+}
+
+void DatapathView::updateWireLabelPosition(float x, float y) {
+  for (size_t i = 0; i < DatapathView::NUMBER_OF_WIRE_LABLES; ++i) {
+    sf::Vector2f currentPositon = m_wireLabels[i].position;
+    m_wireLabels[i].position = {currentPositon.x - m_x + x,
+                                currentPositon.y - m_y + y};
   }
 }
 
@@ -195,9 +207,13 @@ void DatapathView::update() {
 
 void DatapathView::draw(sf::RenderWindow& window) {
   // Draw wires first so they appear behind components
-  // for (auto& wire : m_wires) {
-  //   drawWire(window, wire);
-  // }
+  for (auto& wire : m_wires) {
+    drawWire(window, wire);
+  }
+
+  for (size_t i = 0; i < DatapathView::NUMBER_OF_WIRE_LABLES; ++i) {
+    drawLabel(window, m_wireLabels[i]);
+  }
 
   // Draw all major components
   drawComponentBox(window, m_pcBox, sf::Color::White);
@@ -223,15 +239,6 @@ void DatapathView::draw(sf::RenderWindow& window) {
 
   drawGate(window, m_andGate);
 
-  for (auto& wire : m_wires) {
-    drawWire(window, wire);
-  }
-  // Draw wire labels on top of everything
-  // for (const auto& wire : m_wires) {
-  //     if (!wire.label.empty()) {
-  //         drawWireLabel(window, wire);
-  //     }
-  // }
 }
 
 void DatapathView::drawComponentBox(sf::RenderWindow& window,
@@ -339,40 +346,43 @@ void DatapathView::drawWire(sf::RenderWindow& window, Wire& wire) {
   window.draw(*wire.vertices);
 
   // Used for identifying wires
-  if (length >= 2) {
-    sf::Text beginning(m_font, wire.number, 15);
-    beginning.setFillColor(sf::Color::Black);
-    sf::Vector2f first = wire.vertices->operator[](0).position;
-    beginning.setPosition(first);
-    centerText(beginning);
-    window.draw(beginning);
-
-    sf::Text end(m_font, wire.number, 15);
-    end.setFillColor(sf::Color::Black);
-    sf::Vector2f last = wire.vertices->operator[](length - 1).position;
-    end.setPosition(last);
-    centerText(end);
-    window.draw(end);
-  }
+  // if (length >= 2) {
+  //   sf::Text beginning(m_font, wire.number, 15);
+  //   beginning.setFillColor(sf::Color::Black);
+  //   sf::Vector2f first = wire.vertices->operator[](0).position;
+  //   beginning.setPosition(first);
+  //   centerText(beginning);
+  //   window.draw(beginning);
+  //
+  //   sf::Text end(m_font, wire.number, 15);
+  //   end.setFillColor(sf::Color::Black);
+  //   sf::Vector2f last = wire.vertices->operator[](length - 1).position;
+  //   end.setPosition(last);
+  //   centerText(end);
+  //   window.draw(end);
+  // }
 
   // Draw arrowhead at end
-  // if (!wire.no_arrow && length >= 2) {
-  //   sf::Vector2f backPositon = wire.vertices->operator[](length -
-  //   1).position; sf::VertexArray arrowhead(sf::PrimitiveType::Triangles, 3);
-  //   arrowhead[0].position =
-  //       sf::Vector2f(backPositon.x - 5.f, backPositon.y - 6.f);
-  //   arrowhead[0].color = lineColor;
-  //   arrowhead[1].position = backPositon;
-  //   arrowhead[1].color = lineColor;
-  //   arrowhead[2].position =
-  //       sf::Vector2f(backPositon.x - 5.f, backPositon.y + 5.f);
-  //   arrowhead[2].color = lineColor;
-  //
-  //   window.draw(arrowhead);
-  // }
+  if (!wire.no_arrow && length >= 2) {
+    sf::Vector2f backPositon = wire.vertices->operator[](length -
+    1).position; sf::VertexArray arrowhead(sf::PrimitiveType::Triangles, 3);
+    arrowhead[0].position =
+        sf::Vector2f(backPositon.x - 5.f, backPositon.y - 6.f);
+    arrowhead[0].color = lineColor;
+    arrowhead[1].position = backPositon;
+    arrowhead[1].color = lineColor;
+    arrowhead[2].position =
+        sf::Vector2f(backPositon.x - 5.f, backPositon.y + 5.f);
+    arrowhead[2].color = lineColor;
+
+    window.draw(arrowhead);
+  }
 }
 
 void DatapathView::setupWires() {
+  for (Wire& wire : m_wires) {
+    wire.vertices->clear();
+  }
   // m_pcBox -> m_instructionMemory - Read Address
   m_wires[0].vertices->append(sf::Vertex{{150.f + m_x, 535.f + m_y}});
   m_wires[0].vertices->append(sf::Vertex{{250.f + m_x, 535.f + m_y}});
@@ -664,9 +674,67 @@ void DatapathView::setupWires() {
 }
 
 void DatapathView::setupWireLabels() {
-  m_wireLabels[0] = { 2, "4", true };
+  // 4
+  m_wireLabels[0] = {2, "4", true, {280.f + m_x, 150.f + m_y}};
+  // Instruction [25-0]
+  m_wireLabels[1] = {
+      10, "Instruction [25-0]", true, {450.f + m_x, 50.f + m_y}};
+  // Jump Address [31-0]
+  m_wireLabels[2] = {11, "Jump Address [31-0]", true, {800.f + m_x, 60.f + m_y}};
+  // 26
+  m_wireLabels[3] = {10, "26", true, {460.f + m_x, 90.f + m_y}};
+  // 28
+  m_wireLabels[4] = {11, "28", true, {575.f + m_x, 90.f + m_y}};
+  // PC + 4 [31-28]
+  m_wireLabels[5] = {20, "PC + 4 [31-28]", true, {740.f + m_x, 100.f + m_y}};
+  // Instruction [31-26]
+  m_wireLabels[6] = {
+      3, "Instruction [31-26]", true, {620.f + m_x, 330.f + m_y}};
+  // Instruction [25-21]
+  m_wireLabels[7] = {
+      4, "Instruction [25-21]", true, {620.f + m_x, 500.f + m_y}};
+  // Instruction [20-16]
+  m_wireLabels[8] = {
+      6, "Instruction [20-16]", true, {620.f + m_x, 565.f + m_y}};
+  // Instruction [15-11]
+  m_wireLabels[9] = {
+      8, "Instruction [15-11]", true, {620.f + m_x, 667.f + m_y}};
+  // Instruction [15-0]
+  m_wireLabels[10] = {
+      5, "Instruction [15-0]", true, {650.f + m_x, 840.f + m_y}};
+  // Instruction [5-0]
+  m_wireLabels[11] = {12, "Instruction [5-0]", true, {750.f + m_x, 915.f + m_y}};
+  // 16
+  m_wireLabels[12] = {5, "16", true, {775.f + m_x, 835.f + m_y}};
+  // 32
+  m_wireLabels[13] = {17, "32", true, {925.f + m_x, 835.f + m_y}};
+  // RegDst
+  m_wireLabels[14] = {31, "RegDst", true, {860.f + m_x, 230.f + m_y}};
+  // Jump
+  m_wireLabels[15] = {32, "Jump", true, {860.f + m_x, 255.f + m_y}};
+  // Branch
+  m_wireLabels[16] = {33, "Branch", true, {860.f + m_x, 280.f + m_y}};
+  // MemRead
+  m_wireLabels[17] = {35, "MemRead", true, {860.f + m_x, 305.f + m_y}};
+  // MemtoReg
+  m_wireLabels[18] = {36, "MemtoReg", true, {860.f + m_x, 330.f + m_y}};
+  // ALUOp
+  m_wireLabels[19] = {37, "ALUOp", true, {860.f + m_x, 355.f + m_y}};
+  // MemWrite
+  m_wireLabels[20] = {39, "MemWrite", true, {860.f + m_x, 380.f + m_y}};
+  // ALUSrc
+  m_wireLabels[21] = {40, "ALUSrc", true, {860.f + m_x, 405.f + m_y}};
+  // RegWrite
+  m_wireLabels[22] = {41, "RegWrite", true, {860.f + m_x, 430.f + m_y}};
 }
 
-// TODO: Draw label function
+// TODO:  Make similar function for sf::Text
+void DatapathView::drawLabel(sf::RenderWindow& window, WireLabel& wireLable) {
+  sf::Text label(m_font, wireLable.label, 12);
+  label.setFillColor(sf::Color::Black);
+  label.setPosition(wireLable.position);
+  centerText(label);
+  window.draw(label);
+}
 
 }  // namespace ez_arch

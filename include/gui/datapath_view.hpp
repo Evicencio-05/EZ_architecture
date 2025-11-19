@@ -5,6 +5,7 @@
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <memory>
 #include <vector>
 
@@ -69,7 +70,8 @@ class DatapathView {
   // Wire/Connection definition
   struct Wire {
     Wire() {
-      vertices = std::make_unique<sf::VertexArray>(sf::PrimitiveType::LineStrip, 3);
+      vertices =
+          std::make_unique<sf::VertexArray>(sf::PrimitiveType::LineStrip, 3);
       vertices->clear();
     }
 
@@ -106,11 +108,14 @@ class DatapathView {
   };
 
   struct WireLabel {
-    size_t wireIndex = 42;
+    size_t wireIndex = NUMBER_OF_WIRES - 1;
     std::string label;
     bool valid = false;
+    sf::Vector2f position;
 
-    const Wire& getWire() const { return m_wires[wireIndex]; }
+    const Wire& getWire(const DatapathView& view) const {
+      return view.m_wires[wireIndex];
+    }
   };
 
   ComponentBox m_pcBox;
@@ -137,14 +142,18 @@ class DatapathView {
   std::unique_ptr<AndGateShape> m_andGate;
 
   // All wire connections
-  std::array<Wire, 43> m_wires{}; // Last wire is "invalid" and used as a temp wire for labels
-  std::array<WireLabel, 25> m_wireLabels {};
+  static constexpr size_t NUMBER_OF_WIRES = 43;
+  static constexpr size_t NUMBER_OF_WIRE_LABLES = 23;
+  std::array<Wire, NUMBER_OF_WIRES>
+      m_wires{};  // Last wire is "invalid" and used as a temp wire for labels
+  std::array<WireLabel, NUMBER_OF_WIRE_LABLES> m_wireLabels{};
 
   // Drawing helpers
   void calculateLayout();
   void setupWires();
   void setupWireLabels();
   void updateWirePosition(float x, float y);
+  void updateWireLabelPosition(float x, float y);
   void drawComponentBox(sf::RenderWindow& window, const ComponentBox& box,
                         sf::Color color);
   void drawEllipse(sf::RenderWindow& window,
@@ -157,8 +166,6 @@ class DatapathView {
                 sf::Color color = sf::Color::White);
   void drawWire(sf::RenderWindow& window, Wire& wire);
   void drawLabel(sf::RenderWindow& window, WireLabel& wireLable);
-  // TODO: Create a drawLabel function. Connect to wrires to automatically turn
-  // off when needed
 };
 
 }  // namespace ez_arch
