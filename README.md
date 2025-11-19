@@ -12,11 +12,11 @@ A MIPS computer architecture learning tool that helps visualize how MIPS instruc
 ## Dependencies
 
 ### Required
-- **CMake** (>= 3.15)
+- **CMake** (>= 4.1.2)
 - **C++17** compatible compiler (GCC, Clang, MSVC)
 
 ### Optional
-- **SFML** (>= 2.5) - for GUI mode (CLI works without it)
+- **SFML** - for GUI mode (CLI works without it)
 - **linenoise** - included, provides command history and line editing in CLI
 
 ## Building

@@ -27,6 +27,7 @@ Makefile
 *.cmake
 !CMakeLists.txt
 compile_commands.json
+_deps
 
 # Testing
 Testing/
@@ -40,6 +41,7 @@ docs/latex/
 # Misc
 *.log
 .cache
+out/
 
 # CLI history
 .ez_arch_history

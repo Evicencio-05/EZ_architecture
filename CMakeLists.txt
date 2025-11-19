@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.31.9)
 project(EZ_Architecture VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -14,26 +14,33 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Build options
-option(USE_LINENOISE "Enable linenoise for enhanced CLI (command history, line editing)" ON)
-option(ENABLE_GUI "Build with SFML GUI verison" ON)
+option(USE_LINENOISE "Enable linenoise for enhanced CLI" ON)
+option(ENABLE_GUI    "Build with SFML GUI version" ON)
+option(ENABLE_TESTING "Build and run unit tests" ON)
 
-# Compiler options
+# Compiler warnings
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Find SFML
-find_package(SFML 3.0 COMPONENTS Graphics Window System REQUIRED)
-
-# Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# Enable testing
-enable_testing()
-
-# Subdirectories
 add_subdirectory(src)
-add_subdirectory(tests)
 
-install(TARGETS ez_architecture_gui ez_architecture_cli
-        RUNTIME DESTINATION bin)
+if(ENABLE_TESTING)
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG        v1.15.2   # or release-1.15.2
+    )
+    FetchContent_MakeAvailable(googletest)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
+# Install rules
+if(ENABLE_GUI)
+    install(TARGETS ez_architecture_gui RUNTIME DESTINATION bin)
+endif()
+install(TARGETS ez_architecture_cli RUNTIME DESTINATION bin)

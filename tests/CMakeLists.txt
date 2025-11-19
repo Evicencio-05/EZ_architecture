@@ -1,28 +1,18 @@
-find_package(GTest REQUIRED)
+add_executable(ez_architecture_tests
+    test_alu.cpp
+    test_cpu.cpp
+    test_command_parser.cpp
+    test_instruction.cpp
+    test_memory.cpp
+    test_register_file.cpp
+)
 
-# Test executables
-add_executable(test_register_file test_register_file.cpp)
-target_link_libraries(test_register_file ez_arch_core GTest::gtest GTest::gtest_main)
+target_link_libraries(ez_architecture_tests PRIVATE
+    ez_arch_core
+    gtest_main
+)
 
-add_executable(test_memory test_memory.cpp)
-target_link_libraries(test_memory ez_arch_core GTest::gtest GTest::gtest_main)
+target_compile_features(ez_architecture_tests PRIVATE cxx_std_17)
 
-add_executable(test_alu test_alu.cpp)
-target_link_libraries(test_alu ez_arch_core GTest::gtest GTest::gtest_main)
-
-add_executable(test_instruction test_instruction.cpp)
-target_link_libraries(test_instruction ez_arch_core GTest::gtest GTest::gtest_main)
-
-add_executable(test_cpu test_cpu.cpp)
-target_link_libraries(test_cpu ez_arch_core GTest::gtest GTest::gtest_main)
-
-add_executable(test_command_parser test_command_parser.cpp)
-target_link_libraries(test_command_parser ez_arch_core GTest::gtest GTest::gtest_main)
-
-# Add tests
-add_test(NAME RegisterFileTest COMMAND test_register_file)
-add_test(NAME MemoryTest COMMAND test_memory)
-add_test(NAME ALUTest COMMAND test_alu)
-add_test(NAME InstructionTest COMMAND test_instruction)
-add_test(NAME CPUTest COMMAND test_cpu)
-add_test(NAME CommandParserTest COMMAND test_command_parser)
+include(GoogleTest)
+gtest_discover_tests(ez_architecture_tests)
