@@ -1,8 +1,11 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <memory>
 #include <vector>
 
@@ -66,21 +69,53 @@ class DatapathView {
 
   // Wire/Connection definition
   struct Wire {
-    Wire()
-        : vertices(
-              std::make_unique<sf::VertexArray>(sf::PrimitiveType::LineStrip)),
-          label(""),
-          color(0, 0, 0),
-          active(true),
-          connection(false),
-          no_arrow(false) {}
+    Wire() {
+      vertices =
+          std::make_unique<sf::VertexArray>(sf::PrimitiveType::LineStrip, 3);
+      vertices->clear();
+    }
+
+    Wire(const Wire& other)
+        : number(other.number),
+          color(other.color),
+          active(other.active),
+          no_arrow(other.no_arrow) {
+      if (other.vertices) {
+        vertices = std::make_unique<sf::VertexArray>(*other.vertices);
+      }
+    }
+
+    Wire& operator=(const Wire& other) {
+      if (this == &other) return *this;
+      number = other.number;
+      color = other.color;
+      active = other.active;
+      no_arrow = other.no_arrow;
+      vertices = other.vertices
+                     ? std::make_unique<sf::VertexArray>(*other.vertices)
+                     : nullptr;
+      return *this;
+    }
+
+    Wire(Wire&&) noexcept = default;
+    Wire& operator=(Wire&&) noexcept = default;
 
     std::unique_ptr<sf::VertexArray> vertices;
+    std::string number;
+    sf::Color color = sf::Color::Black;
+    bool active = true;  // Highlight when active
+    bool no_arrow = false;
+  };
+
+  struct WireLabel {
+    size_t wireIndex = NUMBER_OF_WIRES - 1;
     std::string label;
-    sf::Color color;
-    bool active;      // Highlight when active
-    bool connection;  // True if the wire connects to another => no arrow at end
-    bool no_arrow;
+    bool valid = false;
+    sf::Vector2f position;
+
+    const Wire& getWire(const DatapathView& view) const {
+      return view.m_wires[wireIndex];
+    }
   };
 
   ComponentBox m_pcBox;
@@ -105,13 +140,20 @@ class DatapathView {
   std::unique_ptr<MuxShape> m_writeMux;
 
   std::unique_ptr<AndGateShape> m_andGate;
+
   // All wire connections
-  std::array<Wire, 42> m_wires;
+  static constexpr size_t NUMBER_OF_WIRES = 43;
+  static constexpr size_t NUMBER_OF_WIRE_LABLES = 23;
+  std::array<Wire, NUMBER_OF_WIRES>
+      m_wires{};  // Last wire is "invalid" and used as a temp wire for labels
+  std::array<WireLabel, NUMBER_OF_WIRE_LABLES> m_wireLabels{};
 
   // Drawing helpers
   void calculateLayout();
-  void setupWires();  // Define all wire connections
+  void setupWires();
+  void setupWireLabels();
   void updateWirePosition(float x, float y);
+  void updateWireLabelPosition(float x, float y);
   void drawComponentBox(sf::RenderWindow& window, const ComponentBox& box,
                         sf::Color color);
   void drawEllipse(sf::RenderWindow& window,
@@ -123,6 +165,7 @@ class DatapathView {
   void drawGate(sf::RenderWindow& window, std::unique_ptr<AndGateShape>& gate,
                 sf::Color color = sf::Color::White);
   void drawWire(sf::RenderWindow& window, Wire& wire);
+  void drawLabel(sf::RenderWindow& window, WireLabel& wireLable);
 };
 
 }  // namespace ez_arch

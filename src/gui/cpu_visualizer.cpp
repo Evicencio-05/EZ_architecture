@@ -384,7 +384,7 @@ void CPUVisualizer::drawMainArea() {
 
   // Draw the datapath diagram
   m_datapathView->draw(m_window);
-  m_datapathView->drawScaffolding(m_window, mainArea.getSize());
+  // m_datapathView->drawScaffolding(m_window, mainArea.getSize());
 }
 
 void CPUVisualizer::drawActiveView() {
