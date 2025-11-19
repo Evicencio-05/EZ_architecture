@@ -5,8 +5,10 @@
 #include "gui/cpu_visualizer.hpp"
 
 int main() {
+  sf::ContextSettings settings;
+  settings.antiAliasingLevel = 8;
   sf::RenderWindow window(sf::VideoMode({1200, 800}),
-                          "EZ Architecture - MIPS Visualizer");
+                          "EZ Architecture - MIPS Visualizer", sf::State::Windowed, settings);
   window.setFramerateLimit(15);
 
   // Create the CPU instance

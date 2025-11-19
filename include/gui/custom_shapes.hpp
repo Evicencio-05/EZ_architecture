@@ -20,7 +20,7 @@ namespace ez_arch {
 
 // Thanks to SFML docs for this!
 class EllipseShape : public sf::Shape {
- public:
+public:
   explicit EllipseShape(sf::Vector2f radius = {0, 0}) : m_radius(radius) {
     update();
   }
@@ -231,7 +231,7 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
         m_outlineColor(outlineColor),
         m_topCircle(15),
         m_bottomCircle(15),
-        m_centerRect(sf::Vector2f(30, 60)),
+        m_centerRect(sf::Vector2f(30.f, 64.f)),
         m_outlineVertices(sf::PrimitiveType::Lines, 4) {
     Transformable::setOrigin(origin);
     updatePosition();
@@ -321,12 +321,12 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
   void updatePosition() {
     m_topCircle.setPosition(sf::Vector2f(0, 0));
     m_bottomCircle.setPosition(sf::Vector2f(0, 60.f));
-    m_centerRect.setPosition(sf::Vector2f(0, 20.f));
+    m_centerRect.setPosition(sf::Vector2f(0, 16.f));
 
-    m_outlineVertices[0].position = sf::Vector2f(0, 20.f);
+    m_outlineVertices[0].position = sf::Vector2f(0, 18.f);
     m_outlineVertices[1].position = sf::Vector2f(0, 80.f);
-    m_outlineVertices[2].position = sf::Vector2f(31.f, 20.f);
-    m_outlineVertices[3].position = sf::Vector2f(31.f, 80.f);
+    m_outlineVertices[2].position = sf::Vector2f(30.f, 18.f);
+    m_outlineVertices[3].position = sf::Vector2f(30.f, 80.f);
   }
 };
 

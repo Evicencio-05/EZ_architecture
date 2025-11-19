@@ -224,15 +224,18 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
 
 bool CPUVisualizer::loadFont() {
   const char* fontPaths[] = {
-      // "/usr/share/fonts/TTF/DejaVuSans.ttf",
-      // "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+      "/usr/share/fonts/TTF/DejaVuSans.ttf",
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
       "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
       "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-      "/home/evice/.local/share/fonts/omarchy.ttf"};
+      "C:\\Windows\\Fonts\\arial.ttf",};
 
   for (const char* path : fontPaths) {
     if (m_font.openFromFile(path)) {
       std::cout << "Loaded font from: " << path << "\n";
+      if (!m_font.isSmooth()) {
+        m_font.setSmooth(true);
+      }
       return true;
     }
   }

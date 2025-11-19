@@ -103,18 +103,57 @@
  *
  */
 
+#ifndef _WIN32
 #include <termios.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#else
+/* Windows: provide minimal stubs so the file can be parsed/compiled when
+ * <termios.h> and some unistd features are not available. Real terminal
+ * handling is not implemented here; functions will return errors so the
+ * POSIX-specific runtime behavior is effectively disabled on Windows. */
+#include <io.h>
+#include <windows.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <string.h>
+
+/* Minimal termios replacement to satisfy compile-time references. */
+struct termios {
+    unsigned long c_iflag;
+    unsigned long c_oflag;
+    unsigned long c_cflag;
+    unsigned long c_lflag;
+    unsigned char c_cc[32];
+};
+/* Indices used in the code for control chars (provide defaults). */
+enum { VMIN = 6, VTIME = 5 };
+
+/* Stub implementations that indicate termios functionality is not available. */
+static int tcgetattr(int fd, struct termios *t) { (void)fd; (void)t; errno = ENOTTY; return -1; }
+static int tcsetattr(int fd, int opt, const struct termios *t) { (void)fd; (void)opt; (void)t; errno = ENOTTY; return -1; }
+
+/* Map isatty to the MSVC/_open/_isatty variant */
+#define isatty _isatty
+
+#endif
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#ifndef _WIN32
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#else
+/* On Windows, avoid including POSIX-only headers; necessary stubs and
+ * replacements were provided above (io.h, windows.h, minimal termios
+ * emulation). */
+#include <io.h>
+#endif
 #include "linenoise.h"
 
 #define LINENOISE_DEFAULT_HISTORY_MAX_LEN 100
