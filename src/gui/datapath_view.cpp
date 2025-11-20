@@ -14,6 +14,7 @@
 #include <string>
 
 #include "gui/style.hpp"
+#include "core/decoder.hpp"
 
 namespace ez_arch {
 
@@ -202,7 +203,18 @@ void DatapathView::updateWireLabelPosition(float x, float y) {
 }
 
 void DatapathView::update() {
-  // Update will be used to highlight active paths based on current instruction
+  word_t rawInstruction = m_cpu.get_current_instruction().get_raw();
+  Decoder decoder;
+  std::string currentInstructionName = decoder.get_details(rawInstruction).mnemonic;
+
+   for (auto& wire : m_wires) {
+     wire.active = true;
+   }
+
+   std::vector<size_t> offWires;
+   offWires.reserve(m_wires.size());
+
+
 }
 
 void DatapathView::draw(sf::RenderWindow& window) {

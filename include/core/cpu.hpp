@@ -112,6 +112,8 @@ public:
     // Callbacks for visualization
     using StageCallback = std::function<void(ExecutionStage)>;
     void set_stage_callback(StageCallback callback) { m_stageCallback = callback; }
+
+    Instruction get_current_instruction() const { return m_currentInstruction; }
     
 private:
     RegisterFile m_registers;
