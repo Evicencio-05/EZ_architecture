@@ -1,49 +1,49 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
-#include <memory>
-#include <vector>
-
 #include "core/cpu.hpp"
 #include "gui/button.hpp"
 #include "gui/datapath_view.hpp"
 #include "gui/instruction_builder_view.hpp"
-#include "gui/instruction_cache.hpp"
 #include "gui/instruction_queue_view.hpp"
 #include "gui/instruction_view.hpp"
 #include "gui/memory_view.hpp"
 #include "gui/register_view.hpp"
 
+#include <SFML/Graphics.hpp>
+#include <cstdint>
+#include <memory>
+#include <vector>
+
 namespace ez_arch {
 
 class CPUVisualizer {
- public:
+public:
   CPUVisualizer(CPU& cpu, sf::RenderWindow& window);
 
   void update();
   void draw();
 
   // Event handling
-  void handle_mouse_move(float x, float y);
-  void handle_mouse_press(float x, float y);
-  void handle_mouse_release(float x, float y);
-  void handle_mouse_wheel(float x, float y, float delta);
-  void handle_resize(unsigned width, unsigned height);
+  void handleMouseMove(float x, float y);
+  void handleMousePress(float x, float y);
+  void handleMouseRelease(float x, float y);
+  void handleMouseWheel(float x, float y, float delta);
+  void handleResize(unsigned width, unsigned height);
   // Keyboard/text input routed from main
-  void handle_text_entered(uint32_t codepoint);
-  void handle_key_pressed(int key_code);
+  void handleTextEntered(uint32_t codepoint);
+  void handleKeyPressed(int keyCode);
 
- private:
+private:
   CPU& m_cpu;
   sf::RenderWindow& m_window;
   sf::Font m_font;
   bool m_needsUpdate;
 
   // Layout helpers
-  void draw_top_bar();
-  void draw_left_sidebar();
-  void draw_main_area();
-  void draw_active_view();
+  void drawTopBar();
+  void drawLeftSidebar();
+  void drawMainArea();
+  void drawActiveView();
 
   // View components
   std::unique_ptr<RegisterView> m_registerView;
@@ -58,10 +58,10 @@ class CPUVisualizer {
 
   // Instruction queue (persistent)
   std::vector<std::string> m_instructionQueue;
-  void sync_queue_to_cache();
+  static void syncQueueToCache();
 
   // View state
-  enum class ActiveView {
+  enum class ActiveView : uint8_t {
     NONE,
     REGISTERS,
     MEMORY,
@@ -71,8 +71,8 @@ class CPUVisualizer {
   };
   ActiveView m_activeView;
 
-  void draw_pipeline_stage();
-  bool load_font();
+  void drawPipelineStage();
+  bool loadFont();
 };
 
-}  // namespace ez_arch
+} // namespace ez_arch

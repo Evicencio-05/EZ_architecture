@@ -1,14 +1,16 @@
-#include <SFML/Graphics.hpp>
-#include <optional>
-
 #include "core/cpu.hpp"
 #include "gui/cpu_visualizer.hpp"
+
+#include <SFML/Graphics.hpp>
+#include <optional>
 
 int main() {
   sf::ContextSettings settings;
   settings.antiAliasingLevel = 8;
   sf::RenderWindow window(sf::VideoMode({1200, 800}),
-                          "EZ Architecture - MIPS Visualizer", sf::State::Windowed, settings);
+                          "EZ Architecture - MIPS Visualizer",
+                          sf::State::Windowed,
+                          settings);
   window.setFramerateLimit(15);
 
   // Create the CPU instance
@@ -22,8 +24,7 @@ int main() {
 
   while (window.isOpen()) {
     while (const std::optional kEVENT = window.pollEvent()) {
-      if (kEVENT->is<sf::Event::Closed>()) { window.close();
-}
+      if (kEVENT->is<sf::Event::Closed>()) { window.close(); }
 
       if (kEVENT->is<sf::Event::Resized>()) {
         auto size = kEVENT->getIf<sf::Event::Resized>()->size;
@@ -47,7 +48,7 @@ int main() {
         visualizer.handleMouseRelease(pos.x, pos.y);
       }
       if (kEVENT->is<sf::Event::MouseWheelScrolled>()) {
-        const auto *ev = kEVENT->getIf<sf::Event::MouseWheelScrolled>();
+        const auto* ev = kEVENT->getIf<sf::Event::MouseWheelScrolled>();
         visualizer.handleMouseWheel(ev->position.x, ev->position.y, ev->delta);
       }
 

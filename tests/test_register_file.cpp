@@ -6,7 +6,7 @@ using namespace ez_arch;
 TEST(RegisterFileTest, CreateRegisterFile) {
   RegisterFile regFileObj;
 
-  for (register_id_t i = 0; i < RegisterFile::NUM_REGISTERS; ++i) {
+  for (register_id_t i = 0; i < RegisterFile::kNUM_REGISTERS; ++i) {
     EXPECT_EQ(regFileObj.read(i), 0);
   }
 }

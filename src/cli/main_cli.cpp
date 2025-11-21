@@ -1,15 +1,15 @@
+#include "cli/command_parser.hpp"
+#include "cli/input_handler.hpp"
+#include "cli/output_formatter.hpp"
+#include "core/cpu.hpp"
+#include "core/decoder.hpp"
+
 #include <cstdint>
 #include <exception>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
-
-#include "cli/command_parser.hpp"
-#include "cli/input_handler.hpp"
-#include "cli/output_formatter.hpp"
-#include "core/cpu.hpp"
-#include "core/decoder.hpp"
 
 using namespace ez_arch;
 
@@ -31,7 +31,7 @@ int main() { // NOLINT
   InputHandler inputHandler;
 
   // Load command history from previous sessions
-  InputHandler::load_history(".ez_arch_history");
+  InputHandler::loadHistory(".ez_arch_history");
 
   std::cout << "\nEZ architecture MIPS simulator\n\n"
             << "Type 'help' for commands\n\n";
@@ -45,296 +45,284 @@ int main() { // NOLINT
       break;
     }
 
-    if (input.empty()) { continue;
-}
+    if (input.empty()) { continue; }
 
     // Add non-empty commands to history
-    InputHandler::add_history(input);
+    InputHandler::addHistory(input);
 
     Command cmd = CommandParser::parse(input);
 
     switch (cmd.type) {
-      case CommandType::HELP:
-        printHelp();
-        break;
+    case CommandType::HELP:
+      printHelp();
+      break;
 
-      case CommandType::LOAD:
-        if (cmd.args.empty()) {
-          std::cout << "Usage: load <filename>\n";
-        } else {
-          std::vector<word_t> program = load_hex_file(cmd.args[0]);
-          if (!program.empty()) {
-            cpu.load_program(program);
-            std::cout << "Loaded " << program.size() << " instructions\n";
-          }
+    case CommandType::LOAD:
+      if (cmd.args.empty()) {
+        std::cout << "Usage: load <filename>\n";
+      } else {
+        std::vector<word_t> program = loadHexFile(cmd.args[0]);
+        if (!program.empty()) {
+          cpu.loadProgram(program);
+          std::cout << "Loaded " << program.size() << " instructions\n";
         }
-        break;
-
-      case CommandType::STEP: {
-        int count = 1;
-        if (!cmd.args.empty()) {
-          try {
-            count = std::stoi(cmd.args[0]);
-          } catch (const std::exception& e) {
-            std::cerr << "Invalid step count.\n";
-          }
-        }
-
-        for (int i = 0; i < count && !cpu.is_halted(); ++i) {
-          cpu.step();
-        }
-
-        OutputFormatter::print_cpu_state(cpu);
-        if (!g_watches.empty()) {
-          print_watches(cpu);
-        }
-        break;
       }
+      break;
 
-      case CommandType::STEP_STAGE:
-        cpu.step_stage();
-        OutputFormatter::print_cpu_state(cpu);
-        if (!g_watches.empty()) {
-          print_watches(cpu);
-        }
-        break;
-
-      case CommandType::RUN:
-        cpu.run();
-        std::cout << "Execution halted\n";
-        OutputFormatter::print_cpu_state(cpu);
-        if (!g_watches.empty()) {
-          print_watches(cpu);
-        }
-        break;
-
-      case CommandType::REGISTERS:
-        OutputFormatter::print_registers(cpu.get_registers());
-        break;
-
-      case CommandType::REGISTER:
-        if (cmd.args.empty()) {
-          std::cout << "Usage: reg <register_number>\n";
-        } else {
-          try {
-            register_id_t regNum = std::stoi(cmd.args[0]);
-            OutputFormatter::print_registers(cpu.get_registers(), reg_num);
-          } catch (const std::invalid_argument& e) {
-            std::cerr << "Input could not be converted to register number.\n";
-          } catch (const std::out_of_range& e) {
-            std::cerr << "Invalid register number.\n";
-          }
-        }
-        break;
-
-      case CommandType::MEMORY:
-        if (cmd.args.empty()) {
-          std::cout << "Usage: memory <start_address> [end_address]\n";
-        } else {
-          try {
-            address_t start = std::stoul(cmd.args[0], nullptr, 16);
-            address_t end = (cmd.args.size() > 1)
-                                ? std::stoul(cmd.args[1], nullptr, 16)
-                                : start + 64;
-            OutputFormatter::print_memory(cpu.get_memory(), start, end);
-          } catch (const std::exception& e) {
-            std::cerr << "Invalid address format.\n";
-          }
-        }
-        break;
-
-      case CommandType::PC: {
-        const RegisterFile& regs = cpu.get_registers();
-        std::cout << "PC: 0x" << std::hex << std::setw(8) << std::setfill('0')
-                  << regs.get_pc() << std::dec << '\n';
-        break;
-      }
-
-      case CommandType::DISASSEMBLE: {
+    case CommandType::STEP: {
+      int count = 1;
+      if (!cmd.args.empty()) {
         try {
-          address_t addr = cpu.get_registers().get_pc();
-          if (!cmd.args.empty()) {
-            addr = std::stoul(cmd.args[0], nullptr, 16);
+          count = std::stoi(cmd.args[0]);
+        } catch (const std::exception& e) {
+          std::cerr << "Invalid step count.\n";
+        }
+      }
+
+      for (int i = 0; i < count && !cpu.isHalted(); ++i) {
+        cpu.step();
+      }
+
+      OutputFormatter::printCpuState(cpu);
+      if (!g_watches.empty()) { printWatches(cpu); }
+      break;
+    }
+
+    case CommandType::STEP_STAGE:
+      cpu.stepStage();
+      OutputFormatter::printCpuState(cpu);
+      if (!g_watches.empty()) { printWatches(cpu); }
+      break;
+
+    case CommandType::RUN:
+      cpu.run();
+      std::cout << "Execution halted\n";
+      OutputFormatter::printCpuState(cpu);
+      if (!g_watches.empty()) { printWatches(cpu); }
+      break;
+
+    case CommandType::REGISTERS:
+      OutputFormatter::printRegisters(cpu.getRegisters());
+      break;
+
+    case CommandType::REGISTER:
+      if (cmd.args.empty()) {
+        std::cout << "Usage: reg <register_number>\n";
+      } else {
+        try {
+          register_id_t regNum = std::stoi(cmd.args[0]);
+          OutputFormatter::printRegisters(cpu.getRegisters(), regNum);
+        } catch (const std::invalid_argument& e) {
+          std::cerr << "Input could not be converted to register number.\n";
+        } catch (const std::out_of_range& e) {
+          std::cerr << "Invalid register number.\n";
+        }
+      }
+      break;
+
+    case CommandType::MEMORY:
+      if (cmd.args.empty()) {
+        std::cout << "Usage: memory <start_address> [end_address]\n";
+      } else {
+        try {
+          address_t start = std::stoul(cmd.args[0], nullptr, 16);
+          address_t end = (cmd.args.size() > 1)
+                              ? std::stoul(cmd.args[1], nullptr, 16)
+                              : start + 64;
+          OutputFormatter::printMemory(cpu.getMemory(), start, end);
+        } catch (const std::exception& e) {
+          std::cerr << "Invalid address format.\n";
+        }
+      }
+      break;
+
+    case CommandType::PC: {
+      const RegisterFile& regs = cpu.getRegisters();
+      std::cout << "PC: 0x" << std::hex << std::setw(8) << std::setfill('0')
+                << regs.getPc() << std::dec << '\n';
+      break;
+    }
+
+    case CommandType::DISASSEMBLE: {
+      try {
+        address_t addr = cpu.getRegisters().getPc();
+        if (!cmd.args.empty()) { addr = std::stoul(cmd.args[0], nullptr, 16); }
+        word_t instruction = cpu.getMemory().readWord(addr);
+        std::string assembly = Decoder::decode(instruction);
+        std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
+                  << addr << ": 0x" << std::setw(8) << instruction << std::dec
+                  << "  " << assembly << '\n';
+      } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << '\n';
+      }
+      break;
+    }
+
+    case CommandType::ASSEMBLE: {
+      if (cmd.args.empty()) {
+        std::cout << "Usage: asm <assembly instruction>\n";
+        std::cout << "Example: asm add $t0, $t1, $t2\n";
+      } else {
+        try {
+          // Reconstruct the full assembly line from args
+          std::string assemblyLine = cmd.args[0];
+          for (size_t i = 1; i < cmd.args.size(); ++i) {
+            assemblyLine += " " + cmd.args[i];
           }
-          word_t instruction = cpu.get_memory().read_word(addr);
-          std::string assembly = Decoder::decode(instruction);
+
+          word_t instruction = Decoder::assemble(assemblyLine);
           std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
-                    << addr << ": 0x" << std::setw(8) << instruction << std::dec
-                    << "  " << assembly << '\n';
+                    << instruction << std::dec << '\n';
         } catch (const std::exception& e) {
           std::cerr << "Error: " << e.what() << '\n';
         }
-        break;
       }
+      break;
+    }
 
-      case CommandType::ASSEMBLE: {
-        if (cmd.args.empty()) {
-          std::cout << "Usage: asm <assembly instruction>\n";
-          std::cout << "Example: asm add $t0, $t1, $t2\n";
+    case CommandType::WATCH: {
+      if (cmd.args.empty()) {
+        if (g_watches.empty()) {
+          std::cout << "No watch expressions\n";
         } else {
+          printWatches(cpu);
+        }
+      } else {
+        const std::string& expr = cmd.args[0];
+        WatchExpression watch;
+        watch.expr = expr;
+
+        // Parse watch expression
+        if (expr[0] == '$') {
+          // Register watch: $0, $1, etc.
           try {
-            // Reconstruct the full assembly line from args
-            std::string assemblyLine = cmd.args[0];
-            for (size_t i = 1; i < cmd.args.size(); ++i) {
-              assemblyLine += " " + cmd.args[i];
+            watch.type = WatchExpression::REGISTER;
+            watch.value = std::stoi(expr.substr(1));
+            if (watch.value >= 32) {
+              std::cerr << "Invalid register number\n";
+              break;
             }
-
-            word_t instruction = Decoder::assemble(assembly_line);
-            std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
-                      << instruction << std::dec << '\n';
+            g_watches.push_back(watch);
+            std::cout << "Added watch: " << expr << '\n';
           } catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << '\n';
+            std::cerr << "Invalid register format\n";
           }
-        }
-        break;
-      }
-
-      case CommandType::WATCH: {
-        if (cmd.args.empty()) {
-          if (g_watches.empty()) {
-            std::cout << "No watch expressions\n";
-          } else {
-            print_watches(cpu);
+        } else if (expr[0] == '0' && expr[1] == 'x') {
+          // Memory watch: 0x1000, etc.
+          try {
+            watch.type = WatchExpression::MEMORY;
+            watch.value = std::stoul(expr, nullptr, 16);
+            g_watches.push_back(watch);
+            std::cout << "Added watch: " << expr << '\n';
+          } catch (const std::exception& e) {
+            std::cerr << "Invalid address format\n";
           }
         } else {
-          const std::string& expr = cmd.args[0];
-          WatchExpression watch;
-          watch.expr = expr;
-
-          // Parse watch expression
-          if (expr[0] == '$') {
-            // Register watch: $0, $1, etc.
-            try {
-              watch.type = WatchExpression::REGISTER;
-              watch.value = std::stoi(expr.substr(1));
-              if (watch.value >= 32) {
-                std::cerr << "Invalid register number\n";
-                break;
-              }
-              g_watches.push_back(watch);
-              std::cout << "Added watch: " << expr << '\n';
-            } catch (const std::exception& e) {
-              std::cerr << "Invalid register format\n";
-            }
-          } else if (expr[0] == '0' && expr[1] == 'x') {
-            // Memory watch: 0x1000, etc.
-            try {
-              watch.type = WatchExpression::MEMORY;
-              watch.value = std::stoul(expr, nullptr, 16);
-              g_watches.push_back(watch);
-              std::cout << "Added watch: " << expr << '\n';
-            } catch (const std::exception& e) {
-              std::cerr << "Invalid address format\n";
-            }
-          } else {
-            std::cerr << "Watch format: $<reg_num> or 0x<address>\n";
-          }
+          std::cerr << "Watch format: $<reg_num> or 0x<address>\n";
         }
-        break;
       }
+      break;
+    }
 
-      case CommandType::SAVE: {
-        if (cmd.args.empty()) {
-          std::cout << "Usage: save <filename>\n";
-        } else {
-          std::ofstream outfile(cmd.args[0], std::ios::binary);
-          if (!outfile) {
-            std::cerr << "Error: Could not open file for writing\n";
-            break;
-          }
+    case CommandType::SAVE: {
+      if (cmd.args.empty()) {
+        std::cout << "Usage: save <filename>\n";
+      } else {
+        std::ofstream outfile(cmd.args[0], std::ios::binary);
+        if (!outfile) {
+          std::cerr << "Error: Could not open file for writing\n";
+          break;
+        }
 
-          // Save registers (32 registers)
-          for (register_id_t i = 0; i < 32; ++i) {
-            word_t value = cpu.get_registers().read(i);
+        // Save registers (32 registers)
+        for (register_id_t i = 0; i < 32; ++i) {
+          word_t value = cpu.getRegisters().read(i);
+          outfile.write(reinterpret_cast<const char*>(&value), sizeof(value));
+        }
+
+        // Save PC
+        word_t pc = cpu.getRegisters().getPc();
+        outfile.write(reinterpret_cast<const char*>(&pc), sizeof(pc));
+
+        // Save memory (iterate through memory and save non-zero words)
+        // Simple approach: save first 64KB (0x0 to 0x10000)
+        for (address_t addr = 0; addr < 0x10000; addr += 4) {
+          try {
+            word_t value = cpu.getMemory().readWord(addr);
+            outfile.write(reinterpret_cast<const char*>(&addr), sizeof(addr));
             outfile.write(reinterpret_cast<const char*>(&value), sizeof(value));
+          } catch (...) {
+            // Skip unreadable addresses
           }
-
-          // Save PC
-          word_t pc = cpu.get_registers().get_pc();
-          outfile.write(reinterpret_cast<const char*>(&pc), sizeof(pc));
-
-          // Save memory (iterate through memory and save non-zero words)
-          // Simple approach: save first 64KB (0x0 to 0x10000)
-          for (address_t addr = 0; addr < 0x10000; addr += 4) {
-            try {
-              word_t value = cpu.get_memory().read_word(addr);
-              outfile.write(reinterpret_cast<const char*>(&addr), sizeof(addr));
-              outfile.write(reinterpret_cast<const char*>(&value),
-                            sizeof(value));
-            } catch (...) {
-              // Skip unreadable addresses
-            }
-          }
-
-          std::cout << "CPU state saved to " << cmd.args[0] << '\n';
         }
-        break;
+
+        std::cout << "CPU state saved to " << cmd.args[0] << '\n';
       }
+      break;
+    }
 
-      case CommandType::LOAD_STATE: {
-        if (cmd.args.empty()) {
-          std::cout << "Usage: loadstate <filename>\n";
-        } else {
-          std::ifstream infile(cmd.args[0], std::ios::binary);
-          if (!infile) {
-            std::cerr << "Error: Could not open file for reading\n";
-            break;
-          }
-
-          cpu.reset();
-
-          // Load registers
-          for (register_id_t i = 0; i < 32; ++i) {
-            word_t value;
-            infile.read(reinterpret_cast<char*>(&value), sizeof(value));
-            if (i != 0) {  // Don't write to $0
-              cpu.get_registers().write(i, value);
-            }
-          }
-
-          // Load PC
-          word_t pc;
-          infile.read(reinterpret_cast<char*>(&pc), sizeof(pc));
-          cpu.get_registers().set_pc(pc);
-
-          // Load memory
-          while (infile) {
-            address_t addr;
-            word_t value;
-            infile.read(reinterpret_cast<char*>(&addr), sizeof(addr));
-            if (!infile) { break;
-}
-            infile.read(reinterpret_cast<char*>(&value), sizeof(value));
-            if (!infile) { break;
-}
-            try {
-              cpu.get_memory().write_word(addr, value);
-            } catch (...) {
-              // Skip unwriteable addresses
-            }
-          }
-
-          std::cout << "CPU state loaded from " << cmd.args[0] << '\n';
+    case CommandType::LOAD_STATE: {
+      if (cmd.args.empty()) {
+        std::cout << "Usage: loadstate <filename>\n";
+      } else {
+        std::ifstream infile(cmd.args[0], std::ios::binary);
+        if (!infile) {
+          std::cerr << "Error: Could not open file for reading\n";
+          break;
         }
-        break;
-      }
 
-      case CommandType::RESET:
         cpu.reset();
-        std::cout << "CPU reset\n";
-        break;
 
-      case CommandType::QUIT:
-        InputHandler::save_history(".ez_arch_history");
-        running = false;
-        break;
+        // Load registers
+        for (register_id_t i = 0; i < 32; ++i) {
+          word_t value;
+          infile.read(reinterpret_cast<char*>(&value), sizeof(value));
+          if (i != 0) { // Don't write to $0
+            cpu.getRegisters().write(i, value);
+          }
+        }
 
-      case CommandType::UNKNOWN:
-        std::cout << "Unknown command. Type 'help' for available commands\n";
-        break;
+        // Load PC
+        word_t pc;
+        infile.read(reinterpret_cast<char*>(&pc), sizeof(pc));
+        cpu.getRegisters().setPc(pc);
 
-      default:
-        break;
+        // Load memory
+        while (infile) {
+          address_t addr;
+          word_t value;
+          infile.read(reinterpret_cast<char*>(&addr), sizeof(addr));
+          if (!infile) { break; }
+          infile.read(reinterpret_cast<char*>(&value), sizeof(value));
+          if (!infile) { break; }
+          try {
+            cpu.getMemory().writeWord(addr, value);
+          } catch (...) {
+            // Skip unwriteable addresses
+          }
+        }
+
+        std::cout << "CPU state loaded from " << cmd.args[0] << '\n';
+      }
+      break;
+    }
+
+    case CommandType::RESET:
+      cpu.reset();
+      std::cout << "CPU reset\n";
+      break;
+
+    case CommandType::QUIT:
+      InputHandler::saveHistory(".ez_arch_history");
+      running = false;
+      break;
+
+    case CommandType::UNKNOWN:
+      std::cout << "Unknown command. Type 'help' for available commands\n";
+      break;
+
+    default:
+      break;
     }
   }
 
@@ -375,8 +363,7 @@ std::vector<word_t> loadHexFile(const std::string& filename) {
 
   std::string line;
   while (std::getline(file, line)) {
-    if (line.empty() || line[0] == '#') { continue;
-}
+    if (line.empty() || line[0] == '#') { continue; }
 
     try {
       word_t instruction = std::stoul(line, nullptr, 16);
@@ -396,12 +383,12 @@ void printWatches(const CPU& cpu) {
 
     try {
       if (watch.type == WatchExpression::REGISTER) {
-        word_t value = cpu.get_registers().read(watch.value);
+        word_t value = cpu.getRegisters().read(watch.value);
         std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
                   << value << std::dec << " (" << static_cast<int32_t>(value)
                   << ")";
-      } else {  // MEMORY
-        word_t value = cpu.get_memory().read_word(watch.value);
+      } else { // MEMORY
+        word_t value = cpu.getMemory().readWord(watch.value);
         std::cout << "0x" << std::hex << std::setw(8) << std::setfill('0')
                   << value << std::dec;
       }

@@ -14,10 +14,10 @@ constexpr sf::Color kDATA_PATH_BACKGROUND_COLOR(230, 230, 230);
 constexpr sf::Color kTITLE_TEXT_COLOR(sf::Color::Black);
 constexpr sf::Color kHEADER_TEXT_COLOR(60, 60, 60);
 constexpr sf::Color kNORMAL_TEXT_COLOR(80, 80, 80);
-constexpr sf::Color kVALUE_TEXT_COLOR(50, 150, 50);  // Green for values
+constexpr sf::Color kVALUE_TEXT_COLOR(50, 150, 50); // Green for values
 
 // Highlighting
-constexpr sf::Color kPC_HIGHLIGHT_COLOR(255, 255, 100);  // Yellow for PC
+constexpr sf::Color kPC_HIGHLIGHT_COLOR(255, 255, 100); // Yellow for PC
 constexpr sf::Color kPC_HIGHLIGHT_OUTLINE(200, 200, 0);
 
 // Wire Color
@@ -44,4 +44,4 @@ constexpr float kTOP_BAR_HEIGHT = 60.F;
 constexpr float kLEFT_SIDEBAR_WIDTH = 60.F;
 constexpr float kTOGGLE_BUTTON_SIZE = 50.F;
 
-}  // namespace ez_arch
+} // namespace ez_arch

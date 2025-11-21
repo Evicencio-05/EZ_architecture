@@ -1,6 +1,7 @@
 #include "core/instruction.hpp"
-#include <sstream>
+
 #include <iomanip>
+#include <sstream>
 
 namespace ez_arch {
 
@@ -9,12 +10,9 @@ Instruction::Instruction(word_t raw) : m_raw(raw) {}
 InstructionFormat Instruction::getFormat() const {
   uint8_t opcode = getOpcode();
 
-  if (opcode == 0) {
-    return InstructionFormat::R_TYPE;
-  } if (opcode == 2 || opcode == 3) {
-    return InstructionFormat::J_TYPE;
-  }     return InstructionFormat::I_TYPE;
- 
+  if (opcode == 0) { return InstructionFormat::R_TYPE; }
+  if (opcode == 2 || opcode == 3) { return InstructionFormat::J_TYPE; }
+  return InstructionFormat::I_TYPE;
 }
 
 uint8_t Instruction::getOpcode() const {
@@ -55,23 +53,23 @@ std::string Instruction::toString() const {
   ss << " [opcode = " << std::dec << static_cast<int>(getOpcode());
 
   switch (getFormat()) {
-    case InstructionFormat::R_TYPE:
-      ss << ", rs = " << static_cast<int>(getRs())
-          << ", rt = " << static_cast<int>(get_rt())
-          << ", rd = " << static_cast<int>(getRd())
-          << ", shamt = " << static_cast<int>(getShamt())
-          << ", funct = " << static_cast<int>(getFunct()) << "]";
-      break;
-    
-    case InstructionFormat::I_TYPE:
-      ss << ", rs = " << static_cast<int>(getRs())
-          << ", rt = " << static_cast<int>(get_rt())
-          << ", imm = " << get_immediate() << "]";
-      break;
+  case InstructionFormat::R_TYPE:
+    ss << ", rs = " << static_cast<int>(getRs())
+       << ", rt = " << static_cast<int>(getRt())
+       << ", rd = " << static_cast<int>(getRd())
+       << ", shamt = " << static_cast<int>(getShamt())
+       << ", funct = " << static_cast<int>(getFunct()) << "]";
+    break;
 
-    case InstructionFormat::J_TYPE:
-      ss << ", addr = 0x" << std::hex << get_address() << "]";
-      break;
+  case InstructionFormat::I_TYPE:
+    ss << ", rs = " << static_cast<int>(getRs())
+       << ", rt = " << static_cast<int>(getRt()) << ", imm = " << getImmediate()
+       << "]";
+    break;
+
+  case InstructionFormat::J_TYPE:
+    ss << ", addr = 0x" << std::hex << getAddress() << "]";
+    break;
   }
 
   return ss.str();

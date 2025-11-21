@@ -10,7 +10,7 @@ class InstructionCache {
 public:
   // Load cached instructions from disk. Returns list of assembly lines.
   static std::vector<std::string> load();
-  
+
   // Save the provided list to disk, overwriting existing cache.
   static void save(const std::vector<std::string>& lines);
 
@@ -21,7 +21,7 @@ public:
   static void clear();
 
   // Path used for cache file
-  static std::string cache_path();
+  static std::string cachePath();
 };
 
 } // namespace ez_arch

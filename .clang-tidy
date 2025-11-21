@@ -1,17 +1,16 @@
 ---
 Checks: >
   google-*,
-  -google-build-using-namespace,
   readability-*,
-  -readability-magic-numbers,
   performance-*,
   modernize-*,
+  -clang-analyzer-*,
+  -readability-function-cognitive-complexity,
+  -readability-magic-numbers,
+  -google-build-using-namespace,
   -modernize-use-trailing-return-type
 
-HeaderFilterRegex: ".*"
-ExcludeHeaderFilterRegex: "^.*(external|build|examples)/.*$|^.*(CMakeLists\\.txt|\\.cmake)$"
 CheckOptions:
-  readability-function-cognitive-complexity.Threshold: 100
   readability-identifier-length.MinimumParameterNameLength: 0
   readability-identifier-length.MinimumVariableNameLength: 0
   readability-identifier-naming.ClassCase: CamelCase

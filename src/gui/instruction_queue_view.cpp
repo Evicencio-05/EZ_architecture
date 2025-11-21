@@ -1,82 +1,98 @@
 #include "gui/instruction_queue_view.hpp"
+
 #include "gui/style.hpp"
-#include <sstream>
 
 namespace ez_arch {
 
 InstructionQueueView::InstructionQueueView(sf::Font& font) : m_font(font) {}
 
-void InstructionQueueView::set_position(float x, float y) { m_x = x; m_y = y; }
-void InstructionQueueView::set_size(float w, float h) { m_w = w; m_h = h; }
-void InstructionQueueView::set_items(const std::vector<std::string>& items) { m_items = items; }
+void InstructionQueueView::setPosition(float x, float y) {
+  m_x = x;
+  m_y = y;
+}
+void InstructionQueueView::setSize(float w, float h) {
+  m_w = w;
+  m_h = h;
+}
+void InstructionQueueView::setItems(const std::vector<std::string>& items) {
+  m_items = items;
+}
 
-void InstructionQueueView::handle_mouse_move(float /*unused*/, float /*unused*/) {}
+void InstructionQueueView::handleMouseMove(float /*unused*/, float /*unused*/) {
+}
 
 static bool within(float x, float y, float rx, float ry, float rw, float rh) {
   return x >= rx && x <= rx + rw && y >= ry && y <= ry + rh;
 }
 
-void InstructionQueueView::handle_mouse_press(float x, float y) {
+void InstructionQueueView::handleMousePress(float x, float y) {
   // Detect Clear button press
-  float bx = m_x + 20; float by = m_y + m_h - 40; float bw = 100; float bh = 24;
-  if (within(x, y, bx, by, bw, bh)) {
-    m_clearPressed = true;
-  }
+  float bx = m_x + 20;
+  float by = m_y + m_h - 40;
+  float bw = 100;
+  float bh = 24;
+  if (within(x, y, bx, by, bw, bh)) { m_clearPressed = true; }
   // Detect row buttons
   const float kROW_START_Y = m_y + 50;
   const float kROW_H = 20;
   for (size_t i = 0; i < m_items.size(); ++i) {
-    float base_y = kROW_START_Y + (i * kROW_H);
+    float baseY = kROW_START_Y + (i * kROW_H);
     // X button
-    if (within(x, y, m_x + m_w - 30, base_y, 20, 18)) { m_pressedDelete = static_cast<int>(i);
-}
+    if (within(x, y, m_x + m_w - 30, baseY, 20, 18)) {
+      m_pressedDelete = static_cast<int>(i);
+    }
     // Up button
-    if (within(x, y, m_x + m_w - 56, base_y, 20, 18)) { m_pressedMoveUp = static_cast<int>(i);
-}
+    if (within(x, y, m_x + m_w - 56, baseY, 20, 18)) {
+      m_pressedMoveUp = static_cast<int>(i);
+    }
     // Down button
-    if (within(x, y, m_x + m_w - 82, base_y, 20, 18)) { m_pressedMoveDown = static_cast<int>(i);
-}
+    if (within(x, y, m_x + m_w - 82, baseY, 20, 18)) {
+      m_pressedMoveDown = static_cast<int>(i);
+    }
   }
 }
 
-void InstructionQueueView::handle_mouse_release(float x, float y) {
-  float bx = m_x + 20; float by = m_y + m_h - 40; float bw = 100; float bh = 24;
-  bool clear_was = m_clearPressed; m_clearPressed = false;
-  if (clear_was && within(x, y, bx, by, bw, bh)) {
-    if (m_onClear) { m_onClear();
-}
+void InstructionQueueView::handleMouseRelease(float x, float y) {
+  float bx = m_x + 20;
+  float by = m_y + m_h - 40;
+  float bw = 100;
+  float bh = 24;
+  bool clearWas = m_clearPressed;
+  m_clearPressed = false;
+  if (clearWas && within(x, y, bx, by, bw, bh)) {
+    if (m_onClear) { m_onClear(); }
   }
 
-  int up_idx = m_pressedMoveUp; m_pressedMoveUp = -1;
-  if (up_idx >= 0) {
-    float base_y = m_y + 50 + (up_idx * 20);
-    if (within(x, y, m_x + m_w - 56, base_y, 20, 18)) {
-      if (m_onMove) { m_onMove(static_cast<size_t>(up_idx), -1);
-}
+  int upIdx = m_pressedMoveUp;
+  m_pressedMoveUp = -1;
+  if (upIdx >= 0) {
+    float baseY = m_y + 50 + (upIdx * 20);
+    if (within(x, y, m_x + m_w - 56, baseY, 20, 18)) {
+      if (m_onMove) { m_onMove(static_cast<size_t>(upIdx), -1); }
     }
   }
 
-  int down_idx = m_pressedMoveDown; m_pressedMoveDown = -1;
-  if (down_idx >= 0) {
-    float base_y = m_y + 50 + (down_idx * 20);
-    if (within(x, y, m_x + m_w - 82, base_y, 20, 18)) {
-      if (m_onMove) { m_onMove(static_cast<size_t>(down_idx), +1);
-}
+  int downIdx = m_pressedMoveDown;
+  m_pressedMoveDown = -1;
+  if (downIdx >= 0) {
+    float baseY = m_y + 50 + (downIdx * 20);
+    if (within(x, y, m_x + m_w - 82, baseY, 20, 18)) {
+      if (m_onMove) { m_onMove(static_cast<size_t>(downIdx), +1); }
     }
   }
 
-  int idx = m_pressedDelete; m_pressedDelete = -1;
+  int idx = m_pressedDelete;
+  m_pressedDelete = -1;
   if (idx >= 0) {
-    float base_y = m_y + 50 + (idx * 20);
-    if (within(x, y, m_x + m_w - 30, base_y, 20, 18)) {
-      if (m_onDelete) { m_onDelete(static_cast<size_t>(idx));
-}
+    float baseY = m_y + 50 + (idx * 20);
+    if (within(x, y, m_x + m_w - 30, baseY, 20, 18)) {
+      if (m_onDelete) { m_onDelete(static_cast<size_t>(idx)); }
     }
   }
 }
 
 void InstructionQueueView::draw(sf::RenderWindow& window) {
-  draw_panel(window);
+  drawPanel(window);
 
   // Title
   sf::Text title(m_font);
@@ -145,7 +161,8 @@ void InstructionQueueView::draw(sf::RenderWindow& window) {
   // Clear button
   sf::RectangleShape clr({100, 24});
   clr.setPosition({m_x + 20, m_y + m_h - 40});
-  clr.setFillColor(m_clearPressed ? kBUTTON_PRESSED_COLOR : kBUTTON_NORMAL_COLOR);
+  clr.setFillColor(m_clearPressed ? kBUTTON_PRESSED_COLOR
+                                  : kBUTTON_NORMAL_COLOR);
   clr.setOutlineColor(sf::Color::Black);
   clr.setOutlineThickness(1.F);
   window.draw(clr);
@@ -158,7 +175,7 @@ void InstructionQueueView::draw(sf::RenderWindow& window) {
   window.draw(clrt);
 }
 
-void InstructionQueueView::draw_panel(sf::RenderWindow& window) const {
+void InstructionQueueView::drawPanel(sf::RenderWindow& window) const {
   sf::RectangleShape bg({m_w, m_h});
   bg.setPosition({m_x, m_y});
   bg.setFillColor(kVIEW_BOX_BACKGROUND_COLOR);

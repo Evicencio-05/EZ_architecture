@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gui/style.hpp"
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
@@ -14,8 +16,6 @@
 #include <cmath>
 #include <string>
 
-#include "gui/style.hpp"
-
 namespace ez_arch {
 
 // Thanks to SFML docs for this!
@@ -25,20 +25,20 @@ public:
     update();
   }
 
-  void set_radius(sf::Vector2f radius) {
+  void setRadius(sf::Vector2f radius) {
     m_radius = radius;
     update();
   }
 
-  void set_label(const std::string& label) { m_label = label; }
+  void setLabel(const std::string& label) { m_label = label; }
 
-  std::string& get_label() { return m_label; }
+  std::string& getLabel() { return m_label; }
 
-  sf::Vector2f get_radius() const { return m_radius; }
+  sf::Vector2f getRadius() const { return m_radius; }
 
   std::size_t getPointCount() const override {
     return 30;
-  }  // fixed, but could be an attribute of the class if needed
+  } // fixed, but could be an attribute of the class if needed
 
   sf::Vector2f getPoint(std::size_t index) const override {
     static constexpr float kPI = 3.141592654F;
@@ -50,55 +50,57 @@ public:
     return m_radius + sf::Vector2f(x, y);
   }
 
- private:
+private:
   sf::Vector2f m_radius;
   std::string m_label;
 };
 
 class ALUShape : public sf::Drawable, public sf::Transformable {
- public:
-  explicit ALUShape(sf::Font& font, bool is_data_alu = false,
-           unsigned int character_size = 12, sf::Vector2f origin = {0, 0},
-           sf::Color color = sf::Color::White,
-           sf::Color outline_color = sf::Color::Black)
+public:
+  explicit ALUShape(sf::Font& font,
+                    bool isDataAlu = false,
+                    unsigned int characterSize = 12,
+                    sf::Vector2f origin = {0, 0},
+                    sf::Color color = sf::Color::White,
+                    sf::Color outlineColor = sf::Color::Black)
       : m_font(font),
         m_vertices(sf::PrimitiveType::Triangles, 15),
         m_fillColor(color),
         m_outlineVertices(sf::PrimitiveType::LineStrip, 8),
-        m_outlineColor(outline_color),
-        m_dataALU(is_data_alu),
-        m_characterSize(character_size),
+        m_outlineColor(outlineColor),
+        m_dataALU(isDataAlu),
+        m_characterSize(characterSize),
         m_aluScale(sf::Vector2f(1.F, 1.F)) {
     Transformable::setOrigin(origin);
-    update_position();
-    update_fill_color();
-    update_outline_color();
+    updatePosition();
+    updateFillColor();
+    updateOutlineColor();
   }
 
-  void set_font(sf::Font& font) { m_font = font; }
+  void setFont(sf::Font& font) { m_font = font; }
 
-  void set_label(const std::string& label) { m_label = label; }
+  void setLabel(const std::string& label) { m_label = label; }
 
-  void set_character_size(unsigned int character_size) {
-    m_characterSize = character_size;
+  void setCharacterSize(unsigned int characterSize) {
+    m_characterSize = characterSize;
   }
 
-  void set_fill_color(const sf::Color kCOLOR) {
+  void setFillColor(const sf::Color kCOLOR) {
     m_fillColor = kCOLOR;
-    update_fill_color();
+    updateFillColor();
   }
 
-  void set_outline_color(const sf::Color kCOLOR) {
+  void setOutlineColor(const sf::Color kCOLOR) {
     m_outlineColor = kCOLOR;
-    update_outline_color();
+    updateOutlineColor();
   }
 
-  void set_alu_scale(sf::Vector2f scale) {
+  void setAluScale(sf::Vector2f scale) {
     m_aluScale = scale;
-    update_position();
+    updatePosition();
   }
 
-  sf::Vector2f get_alu_scale() { return m_aluScale; }
+  sf::Vector2f getAluScale() { return m_aluScale; }
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
     states.transform *= getTransform();
@@ -110,8 +112,8 @@ class ALUShape : public sf::Drawable, public sf::Transformable {
     label.setFillColor(sf::Color::Black);
     label.setPosition(sf::Vector2f(position.x + m_vertices[14].position.x + 2.F,
                                    position.y + m_vertices[14].position.y));
-    sf::FloatRect text_bounds = label.getLocalBounds();
-    label.setOrigin({0, text_bounds.position.y + (text_bounds.size.y / 2.0F)});
+    sf::FloatRect textBounds = label.getLocalBounds();
+    label.setOrigin({0, textBounds.position.y + (textBounds.size.y / 2.0F)});
     target.draw(label);
 
     if (m_dataALU) {
@@ -120,8 +122,8 @@ class ALUShape : public sf::Drawable, public sf::Transformable {
       zero.setPosition(
           sf::Vector2f(position.x + m_vertices[2].position.x,
                        position.y + m_vertices[2].position.y + 20.F));
-      sf::FloatRect zero_bounds = zero.getLocalBounds();
-      zero.setOrigin({zero_bounds.position.x + zero_bounds.size.x + 2.F, 0});
+      sf::FloatRect zeroBounds = zero.getLocalBounds();
+      zero.setOrigin({zeroBounds.position.x + zeroBounds.size.x + 2.F, 0});
       target.draw(zero);
 
       sf::Text result(m_font, "Result", m_characterSize);
@@ -129,14 +131,14 @@ class ALUShape : public sf::Drawable, public sf::Transformable {
       result.setPosition(
           sf::Vector2f(position.x + m_vertices[8].position.x,
                        position.y + m_vertices[8].position.y - 30.F));
-      sf::FloatRect result_bounds = result.getLocalBounds();
-      result.setOrigin({result_bounds.position.x + result_bounds.size.x + 2.F,
-                        result_bounds.position.y + result_bounds.size.y});
+      sf::FloatRect resultBounds = result.getLocalBounds();
+      result.setOrigin({resultBounds.position.x + resultBounds.size.x + 2.F,
+                        resultBounds.position.y + resultBounds.size.y});
       target.draw(result);
     }
   }
 
- private:
+private:
   sf::Font& m_font;
   sf::VertexArray m_vertices;
   sf::Color m_fillColor;
@@ -147,7 +149,7 @@ class ALUShape : public sf::Drawable, public sf::Transformable {
   unsigned int m_characterSize;
   sf::Vector2f m_aluScale;
 
-  void update_fill_color() {
+  void updateFillColor() {
     for (size_t i = 0; i < 12; i += 3) {
       m_vertices[i].color = m_fillColor;
       m_vertices[i + 1].color = m_fillColor;
@@ -158,13 +160,13 @@ class ALUShape : public sf::Drawable, public sf::Transformable {
     m_vertices[14].color = kDATA_PATH_BACKGROUND_COLOR;
   }
 
-  void update_outline_color() {
+  void updateOutlineColor() {
     for (size_t i = 0; i < 8; ++i) {
       m_outlineVertices[i].color = m_outlineColor;
     }
   }
 
-  void update_position() {
+  void updatePosition() {
     m_vertices[0].position =
         sf::Vector2f(0.F * m_aluScale.x, 0.F * m_aluScale.y);
     m_vertices[1].position =
@@ -220,41 +222,44 @@ class ALUShape : public sf::Drawable, public sf::Transformable {
 };
 
 class MuxShape : public sf::Drawable, public sf::Transformable {
- public:
-  explicit MuxShape(sf::Font& font, bool flip = false, unsigned int character_size = 12,
-           sf::Vector2f origin = {0, 0}, sf::Color fill_color = sf::Color::White,
-           sf::Color outline_color = sf::Color::Black)
+public:
+  explicit MuxShape(sf::Font& font,
+                    bool flip = false,
+                    unsigned int characterSize = 12,
+                    sf::Vector2f origin = {0, 0},
+                    sf::Color fillColor = sf::Color::White,
+                    sf::Color outlineColor = sf::Color::Black)
       : m_font(font),
         m_flip(flip),
-        m_characterSize(character_size),
-        m_fillColor(fill_color),
-        m_outlineColor(outline_color),
+        m_characterSize(characterSize),
+        m_fillColor(fillColor),
+        m_outlineColor(outlineColor),
         m_topCircle(15),
         m_bottomCircle(15),
         m_centerRect(sf::Vector2f(30.F, 64.F)),
         m_outlineVertices(sf::PrimitiveType::Lines, 4) {
     Transformable::setOrigin(origin);
-    update_position();
-    update_fill_color();
-    update_outline_color();
+    updatePosition();
+    updateFillColor();
+    updateOutlineColor();
   }
 
-  void set_font(sf::Font& font) { m_font = font; }
+  void setFont(sf::Font& font) { m_font = font; }
 
   void flip() { m_flip = !m_flip; }
 
-  void set_character_size(unsigned int character_size) {
-    m_characterSize = character_size;
+  void setCharacterSize(unsigned int characterSize) {
+    m_characterSize = characterSize;
   }
 
-  void set_outline_color(sf::Color outline_color) {
-    m_outlineColor = outline_color;
-    update_outline_color();
+  void setOutlineColor(sf::Color outlineColor) {
+    m_outlineColor = outlineColor;
+    updateOutlineColor();
   }
 
-  void set_fill_color(sf::Color fill_color) {
-    m_fillColor = fill_color;
-    update_fill_color();
+  void setFillColor(sf::Color fillColor) {
+    m_fillColor = fillColor;
+    updateFillColor();
   }
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
@@ -264,33 +269,33 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
     target.draw(m_centerRect, states);
     target.draw(m_outlineVertices, states);
 
-    std::string top_label = m_flip ? "1" : "0";
+    std::string topLabel = m_flip ? "1" : "0";
     sf::Vector2f position = Transformable::getPosition();
-    sf::Text top(m_font, top_label, m_characterSize);
+    sf::Text top(m_font, topLabel, m_characterSize);
     top.setFillColor(sf::Color::Black);
     top.setPosition(sf::Vector2f(position.x + 15.F, position.y + 15.F));
-    sf::FloatRect text_bounds = top.getLocalBounds();
-    top.setOrigin({text_bounds.position.x + (text_bounds.size.x / 2.F),
-                   text_bounds.position.y + (text_bounds.size.y / 2.F)});
+    sf::FloatRect textBounds = top.getLocalBounds();
+    top.setOrigin({textBounds.position.x + (textBounds.size.x / 2.F),
+                   textBounds.position.y + (textBounds.size.y / 2.F)});
     target.draw(top);
 
-    std::string bottom_label = m_flip ? "0" : "1";
-    sf::Text bottom(m_font, bottom_label, m_characterSize);
+    std::string bottomLabel = m_flip ? "0" : "1";
+    sf::Text bottom(m_font, bottomLabel, m_characterSize);
     bottom.setFillColor(sf::Color::Black);
     bottom.setPosition(sf::Vector2f(position.x + 15.F, position.y + 80.F));
-    bottom.setOrigin({text_bounds.position.x + (text_bounds.size.x / 2.F),
-                      text_bounds.position.y + (text_bounds.size.y / 2.F)});
+    bottom.setOrigin({textBounds.position.x + (textBounds.size.x / 2.F),
+                      textBounds.position.y + (textBounds.size.y / 2.F)});
     target.draw(bottom);
 
     sf::Text center(m_font, "M\nU\nX", m_characterSize);
     center.setFillColor(sf::Color::Black);
     center.setPosition(sf::Vector2f(position.x + 14.F, position.y + 33.F));
-    center.setOrigin({text_bounds.position.x + (text_bounds.size.x / 2.F),
-                      text_bounds.position.y + (text_bounds.size.y / 2.F)});
+    center.setOrigin({textBounds.position.x + (textBounds.size.x / 2.F),
+                      textBounds.position.y + (textBounds.size.y / 2.F)});
     target.draw(center);
   }
 
- private:
+private:
   sf::Font& m_font;
   bool m_flip;
   unsigned int m_characterSize;
@@ -301,7 +306,7 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
   sf::RectangleShape m_centerRect;
   sf::VertexArray m_outlineVertices;
 
-  void update_fill_color() {
+  void updateFillColor() {
     m_topCircle.setFillColor(m_fillColor);
     m_topCircle.setOutlineThickness(1.F);
     m_bottomCircle.setFillColor(m_fillColor);
@@ -309,7 +314,7 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
     m_centerRect.setFillColor(m_fillColor);
   }
 
-  void update_outline_color() {
+  void updateOutlineColor() {
     m_topCircle.setOutlineColor(m_outlineColor);
     m_bottomCircle.setOutlineColor(m_outlineColor);
 
@@ -318,7 +323,7 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
     }
   }
 
-  void update_position() {
+  void updatePosition() {
     m_topCircle.setPosition(sf::Vector2f(0, 0));
     m_bottomCircle.setPosition(sf::Vector2f(0, 60.F));
     m_centerRect.setPosition(sf::Vector2f(0, 16.F));
@@ -331,27 +336,27 @@ class MuxShape : public sf::Drawable, public sf::Transformable {
 };
 
 class AndGateShape : public sf::Drawable, public sf::Transformable {
- public:
-  explicit AndGateShape(sf::Color fill_color = sf::Color::White,
-               sf::Color outline_color = sf::Color::Black)
-      : m_fillColor(fill_color),
-        m_outlineColor(outline_color),
+public:
+  explicit AndGateShape(sf::Color fillColor = sf::Color::White,
+                        sf::Color outlineColor = sf::Color::Black)
+      : m_fillColor(fillColor),
+        m_outlineColor(outlineColor),
         m_circle(25.F),
         m_rect(sf::Vector2f(20.F, 50.F)),
         m_outlineVertices(sf::PrimitiveType::Lines, 6) {
-    update_outline_color();
-    update_fill_color();
-    update_position();
+    updateOutlineColor();
+    updateFillColor();
+    updatePosition();
   }
 
-  void set_fill_color(sf::Color fill_color) {
-    m_fillColor = fill_color;
-    update_fill_color();
+  void setFillColor(sf::Color fillColor) {
+    m_fillColor = fillColor;
+    updateFillColor();
   }
 
-  void set_outline_color(sf::Color outline_color) {
-    m_outlineColor = outline_color;
-    update_outline_color();
+  void setOutlineColor(sf::Color outlineColor) {
+    m_outlineColor = outlineColor;
+    updateOutlineColor();
   }
 
   void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
@@ -361,7 +366,7 @@ class AndGateShape : public sf::Drawable, public sf::Transformable {
     target.draw(m_outlineVertices, states);
   }
 
- private:
+private:
   sf::Color m_fillColor;
   sf::Color m_outlineColor;
   sf::CircleShape m_circle;
@@ -370,12 +375,12 @@ class AndGateShape : public sf::Drawable, public sf::Transformable {
   // sf::Vector2f m_topInput  // For wires in the future
   // sf::Vector2f m_bottomInput; // For wires in the future
 
-  void update_fill_color() {
+  void updateFillColor() {
     m_circle.setFillColor(m_fillColor);
     m_rect.setFillColor(m_fillColor);
   }
 
-  void update_outline_color() {
+  void updateOutlineColor() {
     m_circle.setOutlineColor(m_outlineColor);
     m_circle.setOutlineThickness(1.F);
 
@@ -384,7 +389,7 @@ class AndGateShape : public sf::Drawable, public sf::Transformable {
     }
   }
 
-  void update_position() {
+  void updatePosition() {
     m_circle.setPosition(sf::Vector2f(0, 0));
     m_rect.setPosition(sf::Vector2f(0, 0));
 
@@ -399,4 +404,4 @@ class AndGateShape : public sf::Drawable, public sf::Transformable {
 
 // TODO(evice): Create another shape for lines with lables.
 
-}  // namespace ez_arch
+} // namespace ez_arch

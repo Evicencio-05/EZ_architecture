@@ -4,17 +4,17 @@
 using namespace ez_arch;
 
 // Helper function to create R-type instruction
-word_t make_r_instruction(uint8_t rs, uint8_t rt, uint8_t rd, uint8_t shamt, uint8_t funct) {
+word_t makeRInstruction(uint8_t rs, uint8_t rt, uint8_t rd, uint8_t shamt, uint8_t funct) {
   return (0 << 26) | (rs << 21) | (rt << 16) | (rd << 11) | (shamt << 6) | funct;
 }
 
 // Helper function to create I-type instruction
-word_t make_i_instruction(uint8_t opcode, uint8_t rs, uint8_t rt, int16_t imm) {
+word_t makeIInstruction(uint8_t opcode, uint8_t rs, uint8_t rt, int16_t imm) {
   return (opcode << 26) | (rs << 21) | (rt << 16) | (imm & 0xFFFF);
 }
 
 // Helper function to create J-type instruction
-word_t make_j_instruction(uint8_t opcode, uint32_t address) {
+word_t makeJInstruction(uint8_t opcode, uint32_t address) {
   return (opcode << 26) | (address & 0x3FFFFFF);
 }
 
@@ -40,7 +40,7 @@ TEST(CPUTest, LoadProgram) {
 
 TEST(CPUTest, Reset) {
   CPU cpu;
-  std::vector<word_t> program = {make_r_instruction(1, 2, 3, 0, Funct::ADD)};
+  std::vector<word_t> program = {makeRInstruction(1, 2, 3, 0, Funct::kADD)};
   
   cpu.load_program(program);
   cpu.step();
@@ -56,7 +56,7 @@ TEST(CPUTest, Reset) {
 TEST(CPUTest, ExecuteADD) {
   CPU cpu;
   // add $3, $1, $2  (r3 = r1 + r2)
-  std::vector<word_t> program = {make_r_instruction(1, 2, 3, 0, Funct::ADD)};
+  std::vector<word_t> program = {makeRInstruction(1, 2, 3, 0, Funct::kADD)};
   
   cpu.load_program(program);
   cpu.get_registers().write(1, 10);
@@ -393,18 +393,18 @@ TEST(CPUTest, StepStageCallback) {
   std::vector<word_t> program = {make_r_instruction(1, 2, 3, 0, Funct::ADD)};
   cpu.load_program(program);
   
-  int callback_count = 0;
-  ExecutionStage last_stage;
+  int callbackCount = 0;
+  ExecutionStage lastStage;
   
   cpu.set_stage_callback([&](ExecutionStage stage) {
-    callback_count++;
-    last_stage = stage;
+    callbackCount++;
+    lastStage = stage;
   });
   
   cpu.step_stage();
   
-  EXPECT_EQ(callback_count, 1);
-  EXPECT_EQ(last_stage, ExecutionStage::FETCH);
+  EXPECT_EQ(callbackCount, 1);
+  EXPECT_EQ(lastStage, ExecutionStage::FETCH);
 }
 
 // Run Tests
@@ -436,11 +436,11 @@ TEST(CPUTest, HaltedCPUDoesNotStep) {
   cpu.run();
   
   EXPECT_TRUE(cpu.is_halted());
-  word_t pc_before = cpu.get_registers().get_pc();
+  word_t pcBefore = cpu.get_registers().get_pc();
   
   cpu.step();
   
-  EXPECT_EQ(cpu.get_registers().get_pc(), pc_before);
+  EXPECT_EQ(cpu.get_registers().get_pc(), pcBefore);
 }
 
 // Edge Cases

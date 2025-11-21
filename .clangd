@@ -1,7 +1,14 @@
----
 If:
-  PathMatch: .*
-  PathExclude: ["external/", "build/", "examples/", "CMakeLists.txt", "*.cmake"]
+  PathMatch: ".*"
+  # PathExclude should be a list of strings following YAML list notation.
+  PathExclude:
+    # Exclude directories
+    - "external/.*" 
+    - "build/.*"
+    - "examples/.*"
+    - "CMakeLists.txt"
+    - "^.*\\.cmake$"
+
 Index:
   Background: Build
   StandardLibrary: true
@@ -12,10 +19,11 @@ Diagnostics:
     - unused-variable
 
 CompileFlags:
-  CompilationDatabase: build
+  CompilationDatabase: "build"
   # Remove:
-  # - -fcolor-diagnostics
-  # - -fno-color-diagnostics
+  #   - -fcolor-diagnostics
+  #   - -fno-color-diagnostics
+
 
 Hover:
   ShowAKA: true

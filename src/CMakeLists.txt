@@ -1,28 +1,28 @@
 # Linenoise library (optional)
 if(USE_LINENOISE)
-    add_library(linenoise STATIC
+  add_library(linenoise STATIC
         ${CMAKE_SOURCE_DIR}/external/linenoise.c
     )
-    target_include_directories(linenoise PUBLIC ${CMAKE_SOURCE_DIR}/external)
-    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-        target_compile_options(linenoise PRIVATE -w)
-    endif()
+  target_include_directories(linenoise PUBLIC ${CMAKE_SOURCE_DIR}/external)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(linenoise PRIVATE -w)
+  endif()
 endif()
 
 # SFML GUI version (optional)
 if(ENABLE_GUI)
-    include(FetchContent)
+  include(FetchContent)
 
-    set(SFML_USE_SYSTEM_DEPS   ON CACHE BOOL "" FORCE)
-    set(SFML_BUILD_AUDIO       FALSE CACHE BOOL "" FORCE)
-    set(SFML_BUILD_NETWORK     FALSE CACHE BOOL "" FORCE)
+  set(SFML_USE_SYSTEM_DEPS   ON CACHE BOOL "" FORCE)
+  set(SFML_BUILD_AUDIO       FALSE CACHE BOOL "" FORCE)
+  set(SFML_BUILD_NETWORK     FALSE CACHE BOOL "" FORCE)
 
-    FetchContent_Declare(
+  FetchContent_Declare(
         SFML
         GIT_REPOSITORY https://github.com/SFML/SFML.git
         GIT_TAG 3.0.0
     )
-    FetchContent_MakeAvailable(SFML)
+  FetchContent_MakeAvailable(SFML)
 endif()
 
 # Core library (shared by CLI, GUI and tests)
@@ -45,15 +45,15 @@ set_source_files_properties(input_handler.cpp PROPERTIES
 target_include_directories(ez_arch_core PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 if(USE_LINENOISE)
-    target_compile_definitions(ez_arch_core PUBLIC USE_LINENOISE)
-    target_link_libraries(ez_arch_core PUBLIC linenoise)
+  target_compile_definitions(ez_arch_core PUBLIC USE_LINENOISE)
+  target_link_libraries(ez_arch_core PUBLIC linenoise)
 endif()
 
 if(ENABLE_GUI)
-    target_compile_definitions(ez_arch_core PUBLIC ENABLE_GUI)
-    target_link_libraries(ez_arch_core PUBLIC SFML::Graphics SFML::Window SFML::System)
+  target_compile_definitions(ez_arch_core PUBLIC ENABLE_GUI)
+  target_link_libraries(ez_arch_core PUBLIC SFML::Graphics SFML::Window SFML::System)
 
-    add_executable(ez_architecture_gui
+  add_executable(ez_architecture_gui
         gui/main_gui.cpp
         gui/cpu_visualizer.cpp
         gui/register_view.cpp
@@ -65,7 +65,7 @@ if(ENABLE_GUI)
         gui/instruction_builder_view.cpp
         gui/instruction_queue_view.cpp
     )
-    target_link_libraries(ez_architecture_gui PRIVATE ez_arch_core)
+  target_link_libraries(ez_architecture_gui PRIVATE ez_arch_core)
 endif()
 
 # CLI executable

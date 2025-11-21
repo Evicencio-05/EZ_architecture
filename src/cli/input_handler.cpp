@@ -1,11 +1,10 @@
 // NOLINTBEGIN
 
 #include "cli/input_handler.hpp"
-#include <iostream>
 
 #ifdef USE_LINENOISE
 extern "C" {
-#include "../../external/linenoise.h"
+#  include "../../external/linenoise.h"
 }
 #endif
 
@@ -23,43 +22,41 @@ std::string InputHandler::readline(const char* prompt) {
 #ifdef USE_LINENOISE
   char* line = linenoise(prompt);
   if (line == nullptr) {
-    return "";  // EOF or error
+    return ""; // EOF or error
   }
   std::string result(line);
-  free(line);  // linenoise allocates with malloc
+  free(line); // linenoise allocates with malloc
   return result;
 #else
   std::cout << prompt;
   std::string line;
   if (!std::getline(std::cin, line)) {
-    return "";  // EOF or error
+    return ""; // EOF or error
   }
   return line;
 #endif
 }
 
-void InputHandler::add_history(const std::string& line) {
+void InputHandler::addHistory(const std::string& line) {
 #ifdef USE_LINENOISE
-  if (!line.empty()) {
-    linenoise_history_add(line.c_str());
-  }
+  if (!line.empty()) { linenoiseHistoryAdd(line.c_str()); }
 #else
-  (void)line;  // Suppress unused parameter warning
+  (void)line; // Suppress unused parameter warning
 #endif
 }
 
-bool InputHandler::save_history(const char* filename) {
+bool InputHandler::saveHistory(const char* filename) {
 #ifdef USE_LINENOISE
-  return linenoise_history_save(filename) == 0;
+  return linenoiseHistorySave(filename) == 0;
 #else
   (void)filename;
   return false;
 #endif
 }
 
-bool InputHandler::load_history(const char* filename) {
+bool InputHandler::loadHistory(const char* filename) {
 #ifdef USE_LINENOISE
-  return linenoise_history_load(filename) == 0;
+  return linenoiseHistoryLoad(filename) == 0;
 #else
   (void)filename;
   return false;
