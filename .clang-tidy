@@ -8,7 +8,8 @@ Checks: >
   -readability-function-cognitive-complexity,
   -readability-magic-numbers,
   -google-build-using-namespace,
-  -modernize-use-trailing-return-type
+  -modernize-use-trailing-return-type,
+  -google-readability-todo
 
 CheckOptions:
   readability-identifier-length.MinimumParameterNameLength: 0

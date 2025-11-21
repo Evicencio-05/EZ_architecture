@@ -171,6 +171,7 @@ void InstructionBuilderView::handleMouseRelease(float x, float y) {
 }
 
 void InstructionBuilderView::handleMouseWheel(float x, float y, float delta) {
+  if (delta == 0) { return; }
   float ddw = 180.F;
   float ddh = 22.F;
   float opx = m_x + 70;
@@ -186,8 +187,7 @@ void InstructionBuilderView::handleMouseWheel(float x, float y, float delta) {
     scroll = std::max(scroll, 0);
     if (scroll > size - kVIS) { scroll = std::max(0, size - kVIS); }
   };
-  int dir = (delta > 0) ? -1 : (delta < 0 ? 1 : 0);
-  if (dir == 0) { return; }
+  int dir = (delta > 0) ? -1 : 1;
   if (m_opOpen && within(x, y, opx, opy + ddh, ddw, ddh * kVIS)) {
     m_opScroll += dir;
     clampScroll(m_opScroll, static_cast<int>(kOPS.size()));

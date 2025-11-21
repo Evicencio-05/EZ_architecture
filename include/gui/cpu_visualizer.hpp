@@ -58,7 +58,7 @@ private:
 
   // Instruction queue (persistent)
   std::vector<std::string> m_instructionQueue;
-  static void syncQueueToCache();
+  static void syncQueueToCache(std::vector<std::string>& instructionQueue);
 
   // View state
   enum class ActiveView : uint8_t {
@@ -72,7 +72,7 @@ private:
   ActiveView m_activeView;
 
   void drawPipelineStage();
-  bool loadFont();
+  static bool loadFont(sf::Font& font);
 };
 
 } // namespace ez_arch

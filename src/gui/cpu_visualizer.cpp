@@ -5,16 +5,18 @@
 #include "gui/instruction_cache.hpp"
 #include "gui/style.hpp"
 
+#include <array>
 #include <cctype>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <string_view>
 
 namespace ez_arch {
 
 CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
     : m_cpu(cpu), m_window(window) {
-  if (!loadFont()) {
+  if (!loadFont(m_font)) {
     std::cerr << "Warning: Could not load font. Text will not display.\n";
   }
 
@@ -198,7 +200,7 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
   m_queueView->setOnDelete([this](size_t idx) {
     if (idx < m_instructionQueue.size()) {
       m_instructionQueue.erase(m_instructionQueue.begin() + idx);
-      syncQueueToCache();
+      syncQueueToCache(m_instructionQueue);
       m_queueView->setItems(m_instructionQueue);
     }
   });
@@ -215,7 +217,7 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
       auto newIdx = static_cast<size_t>(static_cast<int>(idx) + delta);
       if (newIdx < m_instructionQueue.size()) {
         std::swap(m_instructionQueue[idx], m_instructionQueue[newIdx]);
-        syncQueueToCache();
+        syncQueueToCache(m_instructionQueue);
         m_queueView->setItems(m_instructionQueue);
       }
     }
@@ -224,8 +226,8 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
   handleResize(initialSize.x, initialSize.y);
 }
 
-bool CPUVisualizer::loadFont() {
-  const char* fontPaths[] = {
+bool CPUVisualizer::loadFont(sf::Font& font) {
+  const std::array<std::string_view, 5> kFONT_PATHS = {
       "/usr/share/fonts/TTF/DejaVuSans.ttf",
       "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
       "/usr/share/fonts/liberation/LiberationSans-Regular.ttf",
@@ -233,10 +235,10 @@ bool CPUVisualizer::loadFont() {
       R"(C:\Windows\Fonts\arial.ttf)",
   };
 
-  for (const char* path : fontPaths) {
-    if (m_font.openFromFile(path)) {
+  for (std::string_view path : kFONT_PATHS) {
+    if (font.openFromFile(path)) {
       std::cout << "Loaded font from: " << path << "\n";
-      if (!m_font.isSmooth()) { m_font.setSmooth(true); }
+      if (!font.isSmooth()) { font.setSmooth(true); }
       return true;
     }
   }
@@ -503,8 +505,9 @@ void CPUVisualizer::handleKeyPressed(int keyCode) {
 }
 
 // FIX: Fix instruction que static member access
-void CPUVisualizer::syncQueueToCache() {
-  InstructionCache::save(m_instructionQueue);
+void CPUVisualizer::syncQueueToCache(
+    std::vector<std::string>& instructionQueue) {
+  InstructionCache::save(instructionQueue);
 }
 
 } // namespace ez_arch

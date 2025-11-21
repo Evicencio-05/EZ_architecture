@@ -12,14 +12,13 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Window.hpp>
 #include <cstddef>
-#include <iostream>
 #include <memory>
 #include <string>
 
 
 namespace ez_arch {
 
-// TODO(evice): Update to draw and center
+// TODO: Update to draw and center
 static void centerText(sf::Text& label) {
   sf::FloatRect textBounds = label.getLocalBounds();
   label.setOrigin({textBounds.position.x + (textBounds.size.x / 2.0F),
@@ -200,7 +199,6 @@ void DatapathView::updateWireLabelPosition(float x, float y) {
 
 void DatapathView::update() {
   word_t rawInstruction = m_cpu.getCurrentInstruction().getRaw();
-  Decoder decoder;
   std::string currentInstructionName =
       ez_arch::Decoder::getDetails(rawInstruction).mnemonic;
 
@@ -741,7 +739,7 @@ void DatapathView::setupWireLabels() {
   m_wireLabels[22] = {41, "RegWrite", true, {860.F + m_x, 430.F + m_y}};
 }
 
-// TODO(evice):  Make similar function for sf::Text
+// TODO:  Make similar function for sf::Text
 void DatapathView::drawLabel(sf::RenderWindow& window, WireLabel& wireLable) {
   sf::Text label(m_font, wireLable.label, 12);
   label.setFillColor(sf::Color::Black);
