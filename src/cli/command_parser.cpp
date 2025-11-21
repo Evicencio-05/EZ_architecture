@@ -4,7 +4,7 @@
 
 namespace ez_arch {
 
-  Command CommandParser::parse(std::string_view input) {
+  Command CommandParser::parse(std::string_view input) { // NOLINT
     Command cmd;
     std::vector<std::string> tokens = tokenize(input);
     

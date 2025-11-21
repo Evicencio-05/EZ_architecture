@@ -7,10 +7,10 @@
 namespace ez_arch {
 
 RegisterView::RegisterView(const RegisterFile& registers, sf::Font& font)
-    : m_registers(registers), m_font(font), m_x(0.f), m_y(0.f) {
+    : m_registers(registers), m_font(font) {
 }
 
-void RegisterView::setPosition(float x, float y) {
+void RegisterView::set_position(float x, float y) {
     m_x = x;
     m_y = y;
 }
@@ -22,33 +22,33 @@ void RegisterView::update() {
 
 void RegisterView::draw(sf::RenderWindow& window) {
     // Draw the header (title + column labels)
-    drawHeader(window);
+    draw_header(window);
     
     // Draw all 32 registers in a table
-    const float ROW_HEIGHT = 17.f;
-    const float HEADER_HEIGHT = 60.f;
+    const float kROW_HEIGHT = 17.F;
+    const float kHEADER_HEIGHT = 60.F;
     
     for (int i = 0; i < 32; i++) {
-        float regY = m_y + HEADER_HEIGHT + (i * ROW_HEIGHT);
-        drawRegister(window, i, regY);
+        float reg_y = m_y + kHEADER_HEIGHT + (i * kROW_HEIGHT);
+        draw_register(window, i, reg_y);
     }
 }
 
-void RegisterView::drawHeader(sf::RenderWindow& window) {
+void RegisterView::draw_header(sf::RenderWindow& window) {
     // Draw background box for the entire register view
-    sf::RectangleShape background({180.f, 610.f});
+    sf::RectangleShape background({180.F, 610.F});
     background.setPosition({m_x, m_y});
-    background.setFillColor(VIEW_BOX_BACKGROUND_COLOR);
-    background.setOutlineColor(VIEW_BOX_OUTLINE_COLOR);
-    background.setOutlineThickness(2.f);
+    background.setFillColor(kVIEW_BOX_BACKGROUND_COLOR);
+    background.setOutlineColor(kVIEW_BOX_OUTLINE_COLOR);
+    background.setOutlineThickness(2.F);
     window.draw(background);
     
     // Draw title
     sf::Text title(m_font);
     title.setString("Registers");
     title.setCharacterSize(20);
-    title.setFillColor(TITLE_TEXT_COLOR);
-    title.setPosition({m_x + 10.f, m_y + 10.f});
+    title.setFillColor(kTITLE_TEXT_COLOR);
+    title.setPosition({m_x + 10.F, m_y + 10.F});
     window.draw(title);
     
     // Draw column headers
@@ -56,48 +56,48 @@ void RegisterView::drawHeader(sf::RenderWindow& window) {
     header.setString("Reg    Name   Value");
     header.setCharacterSize(14);
     header.setFillColor(sf::Color::Black);
-    header.setPosition({m_x + 10.f, m_y + 40.f});
+    header.setPosition({m_x + 10.F, m_y + 40.F});
     window.draw(header);
 }
 
-void RegisterView::drawRegister(sf::RenderWindow& window, int regNum, float rowY) {
+void RegisterView::draw_register(sf::RenderWindow& window, int reg_num, float row_y) {
     // Read the register value
-    word_t value = m_registers.read(regNum);
+    word_t value = m_registers.read(reg_num);
     
     // Get register name
-    std::string_view regName = REGISTER_NAMES[regNum];
+    std::string_view reg_name = kREGISTER_NAMES[reg_num];
     
     // Format register number (e.g., "$0", "$1", etc.)
-    std::ostringstream regNumStream;
-    regNumStream << regNum;
+    std::ostringstream reg_num_stream;
+    reg_num_stream << reg_num;
     
     // Format value as hexadecimal (e.g., "0x00000000")
-    std::ostringstream valueStream;
-    valueStream << "0x" << std::hex << std::setw(8) << std::setfill('0') << value;
+    std::ostringstream value_stream;
+    value_stream << "0x" << std::hex << std::setw(8) << std::setfill('0') << value;
     
     // Draw register number
-    sf::Text regNumText(m_font);
-    regNumText.setString(regNumStream.str());
-    regNumText.setCharacterSize(12);
-    regNumText.setFillColor(sf::Color::Black);
-    regNumText.setPosition({m_x + 10.f, rowY});
-    window.draw(regNumText);
+    sf::Text reg_num_text(m_font);
+    reg_num_text.setString(reg_num_stream.str());
+    reg_num_text.setCharacterSize(12);
+    reg_num_text.setFillColor(sf::Color::Black);
+    reg_num_text.setPosition({m_x + 10.F, row_y});
+    window.draw(reg_num_text);
     
     // Draw register name
-    sf::Text nameText(m_font);
-    nameText.setString(std::string(regName));
-    nameText.setCharacterSize(12);
-    nameText.setFillColor(sf::Color::Black);
-    nameText.setPosition({m_x + 50.f, rowY});
-    window.draw(nameText);
+    sf::Text name_text(m_font);
+    name_text.setString(std::string(reg_name));
+    name_text.setCharacterSize(12);
+    name_text.setFillColor(sf::Color::Black);
+    name_text.setPosition({m_x + 50.F, row_y});
+    window.draw(name_text);
     
     // Draw register value
-    sf::Text valueText(m_font);
-    valueText.setString(valueStream.str());
-    valueText.setCharacterSize(12);
-    valueText.setFillColor(sf::Color::Black);
-    valueText.setPosition({m_x + 100.f, rowY});
-    window.draw(valueText);
+    sf::Text value_text(m_font);
+    value_text.setString(value_stream.str());
+    value_text.setCharacterSize(12);
+    value_text.setFillColor(sf::Color::Black);
+    value_text.setPosition({m_x + 100.F, row_y});
+    window.draw(value_text);
 }
 
 } // namespace ez_arch

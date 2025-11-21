@@ -1,6 +1,5 @@
 #include "core/register_file.hpp"
 #include <cassert>
-#include <algorithm>
 
 namespace ez_arch {
 
@@ -10,13 +9,14 @@ RegisterFile::RegisterFile() {
 }
 
 word_t RegisterFile::read(register_id_t reg) const {
-    assert(reg < NUM_REGISTERS);
+    assert(reg < kNUM_REGISTERS);
     return m_registers[reg];
 }
 
 void RegisterFile::write(register_id_t reg, word_t value) {
-    assert(reg < NUM_REGISTERS);
-    if (reg == 0) return;
+    assert(reg < kNUM_REGISTERS);
+    if (reg == 0) { return;
+}
     m_registers[reg] = value;
 }
 

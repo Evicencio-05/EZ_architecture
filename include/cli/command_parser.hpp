@@ -1,12 +1,13 @@
 # pragma once
 
+#include <cstdint>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace ez_arch {
 
-  enum class CommandType {
+  enum class CommandType : uint8_t {
     HELP,
     LOAD,
     STEP,

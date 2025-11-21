@@ -21,43 +21,44 @@ int main() {
   ez_arch::CPUVisualizer visualizer(cpu, window);
 
   while (window.isOpen()) {
-    while (const std::optional event = window.pollEvent()) {
-      if (event->is<sf::Event::Closed>()) window.close();
+    while (const std::optional kEVENT = window.pollEvent()) {
+      if (kEVENT->is<sf::Event::Closed>()) { window.close();
+}
 
-      if (event->is<sf::Event::Resized>()) {
-        auto size = event->getIf<sf::Event::Resized>()->size;
+      if (kEVENT->is<sf::Event::Resized>()) {
+        auto size = kEVENT->getIf<sf::Event::Resized>()->size;
         window.setView(sf::View(sf::FloatRect({0, 0}, sf::Vector2f(size))));
         visualizer.handleResize(size.x, size.y);
       }
 
       // Handle mouse events
-      if (event->is<sf::Event::MouseMoved>()) {
-        auto pos = event->getIf<sf::Event::MouseMoved>()->position;
+      if (kEVENT->is<sf::Event::MouseMoved>()) {
+        auto pos = kEVENT->getIf<sf::Event::MouseMoved>()->position;
         visualizer.handleMouseMove(pos.x, pos.y);
       }
 
-      if (event->is<sf::Event::MouseButtonPressed>()) {
-        auto pos = event->getIf<sf::Event::MouseButtonPressed>()->position;
+      if (kEVENT->is<sf::Event::MouseButtonPressed>()) {
+        auto pos = kEVENT->getIf<sf::Event::MouseButtonPressed>()->position;
         visualizer.handleMousePress(pos.x, pos.y);
       }
 
-      if (event->is<sf::Event::MouseButtonReleased>()) {
-        auto pos = event->getIf<sf::Event::MouseButtonReleased>()->position;
+      if (kEVENT->is<sf::Event::MouseButtonReleased>()) {
+        auto pos = kEVENT->getIf<sf::Event::MouseButtonReleased>()->position;
         visualizer.handleMouseRelease(pos.x, pos.y);
       }
-      if (event->is<sf::Event::MouseWheelScrolled>()) {
-        auto ev = event->getIf<sf::Event::MouseWheelScrolled>();
+      if (kEVENT->is<sf::Event::MouseWheelScrolled>()) {
+        const auto *ev = kEVENT->getIf<sf::Event::MouseWheelScrolled>();
         visualizer.handleMouseWheel(ev->position.x, ev->position.y, ev->delta);
       }
 
       // Keyboard/text events (for builder input)
-      if (event->is<sf::Event::TextEntered>()) {
-        auto unicode = event->getIf<sf::Event::TextEntered>()->unicode;
+      if (kEVENT->is<sf::Event::TextEntered>()) {
+        auto unicode = kEVENT->getIf<sf::Event::TextEntered>()->unicode;
         visualizer.handleTextEntered(unicode);
       }
-      if (event->is<sf::Event::KeyPressed>()) {
+      if (kEVENT->is<sf::Event::KeyPressed>()) {
         auto code =
-            static_cast<int>(event->getIf<sf::Event::KeyPressed>()->code);
+            static_cast<int>(kEVENT->getIf<sf::Event::KeyPressed>()->code);
         visualizer.handleKeyPressed(code);
       }
     }

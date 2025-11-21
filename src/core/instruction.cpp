@@ -6,66 +6,65 @@ namespace ez_arch {
 
 Instruction::Instruction(word_t raw) : m_raw(raw) {}
 
-InstructionFormat Instruction::get_format() const {
-  uint8_t opcode = get_opcode();
+InstructionFormat Instruction::getFormat() const {
+  uint8_t opcode = getOpcode();
 
   if (opcode == 0) {
     return InstructionFormat::R_TYPE;
-  } else if (opcode == 2 || opcode == 3) {
+  } if (opcode == 2 || opcode == 3) {
     return InstructionFormat::J_TYPE;
-  } else {
-    return InstructionFormat::I_TYPE;
-  }
+  }     return InstructionFormat::I_TYPE;
+ 
 }
 
-uint8_t Instruction::get_opcode() const {
+uint8_t Instruction::getOpcode() const {
   return (m_raw >> 26) & 0x3F;
 }
 
-register_id_t Instruction::get_rs() const {
+register_id_t Instruction::getRs() const {
   return (m_raw >> 21) & 0x1F;
 }
 
-register_id_t Instruction::get_rt() const {
+register_id_t Instruction::getRt() const {
   return (m_raw >> 16) & 0x1F;
 }
 
-register_id_t Instruction::get_rd() const {
+register_id_t Instruction::getRd() const {
   return (m_raw >> 11) & 0x1F;
 }
 
-uint8_t Instruction::get_shamt() const {
+uint8_t Instruction::getShamt() const {
   return (m_raw >> 6) & 0x1F;
 }
 
-uint8_t Instruction::get_funct() const {
+uint8_t Instruction::getFunct() const {
   return m_raw & 0x3F;
 }
 
-int16_t Instruction::get_immediate() const {
+int16_t Instruction::getImmediate() const {
   return static_cast<int16_t>(m_raw & 0xFFFF);
 }
 
-uint32_t Instruction::get_address() const {
+uint32_t Instruction::getAddress() const {
   return m_raw & 0x3FFFFFF;
 }
 
-std::string Instruction::to_string() const {
+std::string Instruction::toString() const {
   std::stringstream ss;
   ss << "0x" << std::hex << std::setw(8) << std::setfill('0') << m_raw;
-  ss << " [opcode = " << std::dec << static_cast<int>(get_opcode());
+  ss << " [opcode = " << std::dec << static_cast<int>(getOpcode());
 
-  switch (get_format()) {
+  switch (getFormat()) {
     case InstructionFormat::R_TYPE:
-      ss << ", rs = " << static_cast<int>(get_rs())
+      ss << ", rs = " << static_cast<int>(getRs())
           << ", rt = " << static_cast<int>(get_rt())
-          << ", rd = " << static_cast<int>(get_rd())
-          << ", shamt = " << static_cast<int>(get_shamt())
-          << ", funct = " << static_cast<int>(get_funct()) << "]";
+          << ", rd = " << static_cast<int>(getRd())
+          << ", shamt = " << static_cast<int>(getShamt())
+          << ", funct = " << static_cast<int>(getFunct()) << "]";
       break;
     
     case InstructionFormat::I_TYPE:
-      ss << ", rs = " << static_cast<int>(get_rs())
+      ss << ", rs = " << static_cast<int>(getRs())
           << ", rt = " << static_cast<int>(get_rt())
           << ", imm = " << get_immediate() << "]";
       break;

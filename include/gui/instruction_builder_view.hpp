@@ -13,34 +13,34 @@ class InstructionBuilderView {
 public:
   using OnAddCallback = std::function<void(const std::string&)>;
 
-  InstructionBuilderView(sf::Font& font);
+  explicit InstructionBuilderView(sf::Font& font);
 
-  void setPosition(float x, float y);
-  void setSize(float w, float h);
+  void set_position(float x, float y);
+  void set_size(float w, float h);
 
   // Event handling (use like Button)
-  void handleMouseMove(float x, float y);
-  void handleMousePress(float x, float y);
-  void handleMouseRelease(float x, float y);
-  void handleMouseWheel(float x, float y, float delta);
+  void handle_mouse_move(float x, float y);
+  void handle_mouse_press(float x, float y);
+  void handle_mouse_release(float x, float y);
+  void handle_mouse_wheel(float x, float y, float delta);
   
   // Keyboard/text input
-  void handleTextEntered(uint32_t codepoint);
-  void handleKeyPressed(int keyCode); // sf::Keyboard::Key as int to avoid header coupling
+  void handle_text_entered(uint32_t codepoint);
+  void handle_key_pressed(int key_code); // sf::Keyboard::Key as int to avoid header coupling
 
   void draw(sf::RenderWindow& window);
 
   // Set callback when user clicks Add
-  void setOnAdd(OnAddCallback cb) { m_onAdd = std::move(cb); }
+  void set_on_add(OnAddCallback cb) { m_onAdd = std::move(cb); }
 
   // State queries and controls for integration (hotkeys)
-  bool anyDropdownOpen() const { return m_opOpen || m_rsOpen || m_rtOpen || m_rdOpen; }
-  bool textActive() const { return m_immActive; }
-  void openOp() { m_opOpen = true; m_rsOpen = m_rtOpen = m_rdOpen = false; }
-  void openRS() { m_rsOpen = true; m_opOpen = m_rtOpen = m_rdOpen = false; }
-  void openRT() { m_rtOpen = true; m_opOpen = m_rsOpen = m_rdOpen = false; }
-  void openRD() { m_rdOpen = true; m_opOpen = m_rsOpen = m_rtOpen = false; }
-  void closeDropdowns() { m_opOpen = m_rsOpen = m_rtOpen = m_rdOpen = false; }
+  [[nodiscard]] bool any_dropdown_open() const { return m_opOpen || m_rsOpen || m_rtOpen || m_rdOpen; }
+  [[nodiscard]] bool text_active() const { return m_immActive; }
+  void open_op() { m_opOpen = true; m_rsOpen = m_rtOpen = m_rdOpen = false; }
+  void open_rs() { m_rsOpen = true; m_opOpen = m_rtOpen = m_rdOpen = false; }
+  void open_rt() { m_rtOpen = true; m_opOpen = m_rsOpen = m_rdOpen = false; }
+  void open_rd() { m_rdOpen = true; m_opOpen = m_rsOpen = m_rtOpen = false; }
+  void close_dropdowns() { m_opOpen = m_rsOpen = m_rtOpen = m_rdOpen = false; }
 
 private:
   sf::Font& m_font;
@@ -72,13 +72,13 @@ private:
   OnAddCallback m_onAdd;
 
   // Helpers
-  void drawPanel(sf::RenderWindow& window);
-  void drawLabel(sf::RenderWindow& window, const std::string& text, float x, float y, unsigned size=14);
-  void drawTextBox(sf::RenderWindow& window, const std::string& value, float x, float y, float w, float h, bool active=false);
-  void drawButton(sf::RenderWindow& window, const std::string& text, float x, float y, float w, float h, bool pressed);
+  void draw_panel(sf::RenderWindow& window) const;
+  void draw_label(sf::RenderWindow& window, const std::string& text, float x, float y, unsigned size=14);
+  void draw_text_box(sf::RenderWindow& window, const std::string& value, float x, float y, float w, float h, bool active=false);
+  void draw_button(sf::RenderWindow& window, const std::string& text, float x, float y, float w, float h, bool pressed);
 
   // Assemble from current selection
-  std::string currentAssembly() const;
+  [[nodiscard]] std::string current_assembly() const;
 };
 
 } // namespace ez_arch

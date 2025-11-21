@@ -5,17 +5,17 @@
 
 namespace ez_arch {
     
-    void Memory::check_alignment(address_t addr) const {
+    void Memory::checkAlignment(address_t addr) {
         assert((addr & 0x3) == 0);
     }
 
-    void Memory::check_bounds(address_t addr, size_t access_size) const {
-        assert((addr + access_size) <= m_memory.size());
+    void Memory::checkBounds(address_t addr, size_t accessSize) const {
+        assert((addr + accessSize) <= m_memory.size());
     }
 
-    word_t Memory::read_word(address_t addr) const {
-      check_alignment(addr);
-      check_bounds(addr, WORD_ACCESS_SIZE);
+    word_t Memory::readWord(address_t addr) const {
+      checkAlignment(addr);
+      checkBounds(addr, kWORD_ACCESS_SIZE);
       word_t result = (m_memory[addr] << 24)     |
                       (m_memory[addr + 1] << 16) |
                       (m_memory[addr + 2] << 8)  |
@@ -23,38 +23,38 @@ namespace ez_arch {
       return result;
     }
 
-    void Memory::write_word(address_t addr, word_t value) {
-      check_alignment(addr);
-      check_bounds(addr, WORD_ACCESS_SIZE);
+    void Memory::writeWord(address_t addr, word_t value) {
+      checkAlignment(addr);
+      checkBounds(addr, kWORD_ACCESS_SIZE);
       m_memory[addr]     = (value >> 24) & 0xFF;
       m_memory[addr + 1] = (value >> 16) & 0xFF;
       m_memory[addr + 2] = (value >> 8) & 0xFF;
       m_memory[addr + 3] = value & 0xFF;
     }
     
-    uint8_t Memory::read_byte(address_t addr) const {
-      check_bounds(addr, BYTE_ACCESS_SIZE);
+    uint8_t Memory::readByte(address_t addr) const {
+      checkBounds(addr, kBYTE_ACCESS_SIZE);
       return m_memory[addr];
     }
 
-    void Memory::write_byte(address_t addr, uint8_t value) {
-      check_bounds(addr, BYTE_ACCESS_SIZE);
+    void Memory::writeByte(address_t addr, uint8_t value) {
+      checkBounds(addr, kBYTE_ACCESS_SIZE);
       m_memory[addr] = value;
     }
     
-    void Memory::load_program(const std::vector<word_t>& program, address_t start_addr){ 
-      const size_t program_size = program.size();
+    void Memory::loadProgram(const std::vector<word_t>& program, address_t startAddr){ 
+      const size_t kPROGRAM_SIZE = program.size();
       
-      check_bounds(start_addr, program_size * WORD_ACCESS_SIZE);
-      check_alignment(start_addr);
+      checkBounds(startAddr, kPROGRAM_SIZE * kWORD_ACCESS_SIZE);
+      checkAlignment(startAddr);
 
       // For overflow wrapping:
       // size_t bytes_needed = program_size * WORD_ACCESS_SIZE; // Check if program fits
       // assert(bytes_needed / WORD_ACCESS_SIZE == program_size); // Overflow check
       // assert(start_addr + bytes_needed <= m_memory.size());     // Bounds check
 
-      for (size_t i = 0; i < program_size; ++i) {
-        write_word(start_addr + (i * 4), program[i]);
+      for (size_t i = 0; i < kPROGRAM_SIZE; ++i) {
+        writeWord(startAddr + (i * 4), program[i]);
       }
     }
 

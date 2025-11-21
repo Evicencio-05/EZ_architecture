@@ -1,0 +1,43 @@
+---
+Checks: >
+  google-*,
+  -google-build-using-namespace,
+  readability-*,
+  -readability-magic-numbers,
+  performance-*,
+  modernize-*,
+  -modernize-use-trailing-return-type
+
+HeaderFilterRegex: ".*"
+ExcludeHeaderFilterRegex: "^.*(external|build|examples)/.*$|^.*(CMakeLists\\.txt|\\.cmake)$"
+CheckOptions:
+  readability-function-cognitive-complexity.Threshold: 100
+  readability-identifier-length.MinimumParameterNameLength: 0
+  readability-identifier-length.MinimumVariableNameLength: 0
+  readability-identifier-naming.ClassCase: CamelCase
+  readability-identifier-naming.ClassMemberCase: camelBack
+  readability-identifier-naming.ClassMemberPrefix: "m_"
+  readability-identifier-naming.ConstantCase: UPPER_CASE
+  readability-identifier-naming.ConstantPrefix: "k"
+  readability-identifier-naming.FunctionCase: camelBack
+  readability-identifier-naming.GlobalConstantCase: UPPER_CASE
+  readability-identifier-naming.GlobalConstantPrefix: "k"
+  readability-identifier-naming.GlobalVariableCase: camelBack
+  readability-identifier-naming.GlobalVariablePrefix: "g_"
+  readability-identifier-naming.LocalVariableCase: camelBack
+  readability-identifier-naming.ParameterCase: camelBack
+  readability-identifier-naming.PointerParameterCase: camelBack
+  readability-identifier-naming.StaticConstantCase: UPPER_CASE
+  readability-identifier-naming.StaticConstantPrefix: "k"
+  readability-identifier-naming.StaticVariableCase: camelBack
+  readability-identifier-naming.StaticVariablePrefix: "s_"
+  readability-identifier-naming.StructCase: CamelCase
+  readability-identifier-naming.UnionCase: CamelCase
+  readability-identifier-naming.EnumCase: CamelCase
+  readability-identifier-naming.EnumConstantCase: UPPER_CASE
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+  readability-identifier-naming.TypedefCase: CamelCase
+  readability-identifier-naming.TypeTemplateParameterCase: CamelCase
+  readability-identifier-naming.ValueTemplateParameterCase: camelBack
+  readability-identifier-naming.VariableCase: camelBack
+  readability-identifier-naming.VirtualMethodCase: lower_case

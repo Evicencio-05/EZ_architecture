@@ -16,15 +16,15 @@ namespace ez_arch {
 class InputHandler {
 public:
   InputHandler();
-  ~InputHandler();
+  ~InputHandler() = default;
 
-  std::string readline(const char* prompt);
+  static std::string readline(const char* prompt);
 
-  void add_history(const std::string& line);
+  static void add_history(const std::string& line);
 
-  bool save_history(const char* filename);
+  static bool save_history(const char* filename);
 
-  bool load_history(const char* filename);
+  static bool load_history(const char* filename);
 
 private:
   bool using_linenoise_;

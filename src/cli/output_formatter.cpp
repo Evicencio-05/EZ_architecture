@@ -11,11 +11,11 @@ namespace ez_arch {
       std::cout << "\nREGISTERS\n"
                 << std::string(50, '-') << "\n";
 
-      size_t registers_size = REGISTER_NAMES.size();
+      size_t registers_size = kREGISTER_NAMES.size();
 
       for (size_t i = 0; i < registers_size; i += 4) {
         for (size_t j = 0; j < 4 && (i + j) < registers_size; ++j) {
-          std::cout << std::setw(5) << std::setfill(' ') << REGISTER_NAMES[i + j] << ": "
+          std::cout << std::setw(5) << std::setfill(' ') << kREGISTER_NAMES[i + j] << ": "
                     << "0x" << std::hex << std::setw(8) << std::setfill('0')
                     << regs.read(static_cast<int>(i + j)) << std::dec << "  ";
         }
@@ -29,7 +29,7 @@ namespace ez_arch {
     } else if (*reg > 31) {
       std::cout << "Register number must be 0-31\n";
     } else {
-      std::cout << REGISTER_NAMES[*reg] << " ($ " << static_cast<int>(*reg) << "): "
+      std::cout << kREGISTER_NAMES[*reg] << " ($ " << static_cast<int>(*reg) << "): "
                 << "0x" << std::hex << std::setw(8) << std::setfill('0')
                 << regs.read(*reg) << std::dec
                 << "(decimal: " << regs.read(*reg) << ")\n";
@@ -64,7 +64,7 @@ namespace ez_arch {
     std::cout << "\n--- CPU STATE ---\n"
               << "PC: 0x" << std::hex << std::setw(8) << std::setfill('0')
               << regs.get_pc() << std::dec << '\n'
-              << stageToString(cpu.get_current_stage()) << '\n'
+              << stage_to_string(cpu.get_current_stage()) << '\n'
               << "Halted: " << (cpu.is_halted() ? "Yes" : "No") << '\n'
               << std::string(17, '-') << '\n';
   }

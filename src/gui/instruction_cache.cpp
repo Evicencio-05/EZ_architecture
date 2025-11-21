@@ -8,9 +8,10 @@ namespace fs = std::filesystem;
 
 namespace ez_arch {
 
-static std::string get_home() {
+static std::string getHome() {
   const char* h = std::getenv("HOME");
-  if (h && *h) return std::string(h);
+  if ((h != nullptr) && (*h != 0)) { return std::string(h);
+}
   return "."; // fallback
 }
 
@@ -24,10 +25,12 @@ std::string InstructionCache::cache_path() {
 std::vector<std::string> InstructionCache::load() {
   std::vector<std::string> lines;
   std::ifstream in(cache_path());
-  if (!in.is_open()) return lines;
+  if (!in.is_open()) { return lines;
+}
   std::string line;
   while (std::getline(in, line)) {
-    if (!line.empty()) lines.push_back(line);
+    if (!line.empty()) { lines.push_back(line);
+}
   }
   return lines;
 }

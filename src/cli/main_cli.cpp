@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <exception>
 #include <fstream>
 #include <iomanip>
@@ -14,29 +15,29 @@ using namespace ez_arch;
 
 struct WatchExpression {
   std::string expr;
-  enum Type { REGISTER, MEMORY } type;
+  enum Type : uint8_t { REGISTER, MEMORY } type;
   uint32_t value;
 };
 
-std::vector<WatchExpression> watches;
+std::vector<WatchExpression> g_watches;
 
-void print_help();
-std::vector<word_t> load_hex_file(const std::string& filename);
-void print_watches(const CPU& cpu);
+void printHelp();
+std::vector<word_t> loadHexFile(const std::string& filename);
+void printWatches(const CPU& cpu);
 
-int main() {
+int main() { // NOLINT
   CPU cpu;
   bool running = true;
-  InputHandler input_handler;
+  InputHandler inputHandler;
 
   // Load command history from previous sessions
-  input_handler.load_history(".ez_arch_history");
+  InputHandler::load_history(".ez_arch_history");
 
   std::cout << "\nEZ architecture MIPS simulator\n\n"
             << "Type 'help' for commands\n\n";
 
   while (running) {
-    std::string input = input_handler.readline("> ");
+    std::string input = InputHandler::readline("> ");
 
     // Handle EOF (Ctrl+D)
     if (input.empty() && std::cin.eof()) {
@@ -44,16 +45,17 @@ int main() {
       break;
     }
 
-    if (input.empty()) continue;
+    if (input.empty()) { continue;
+}
 
     // Add non-empty commands to history
-    input_handler.add_history(input);
+    InputHandler::add_history(input);
 
     Command cmd = CommandParser::parse(input);
 
     switch (cmd.type) {
       case CommandType::HELP:
-        print_help();
+        printHelp();
         break;
 
       case CommandType::LOAD:
@@ -83,7 +85,7 @@ int main() {
         }
 
         OutputFormatter::print_cpu_state(cpu);
-        if (!watches.empty()) {
+        if (!g_watches.empty()) {
           print_watches(cpu);
         }
         break;
@@ -92,7 +94,7 @@ int main() {
       case CommandType::STEP_STAGE:
         cpu.step_stage();
         OutputFormatter::print_cpu_state(cpu);
-        if (!watches.empty()) {
+        if (!g_watches.empty()) {
           print_watches(cpu);
         }
         break;
@@ -101,7 +103,7 @@ int main() {
         cpu.run();
         std::cout << "Execution halted\n";
         OutputFormatter::print_cpu_state(cpu);
-        if (!watches.empty()) {
+        if (!g_watches.empty()) {
           print_watches(cpu);
         }
         break;
@@ -115,7 +117,7 @@ int main() {
           std::cout << "Usage: reg <register_number>\n";
         } else {
           try {
-            register_id_t reg_num = std::stoi(cmd.args[0]);
+            register_id_t regNum = std::stoi(cmd.args[0]);
             OutputFormatter::print_registers(cpu.get_registers(), reg_num);
           } catch (const std::invalid_argument& e) {
             std::cerr << "Input could not be converted to register number.\n";
@@ -172,9 +174,9 @@ int main() {
         } else {
           try {
             // Reconstruct the full assembly line from args
-            std::string assembly_line = cmd.args[0];
+            std::string assemblyLine = cmd.args[0];
             for (size_t i = 1; i < cmd.args.size(); ++i) {
-              assembly_line += " " + cmd.args[i];
+              assemblyLine += " " + cmd.args[i];
             }
 
             word_t instruction = Decoder::assemble(assembly_line);
@@ -189,7 +191,7 @@ int main() {
 
       case CommandType::WATCH: {
         if (cmd.args.empty()) {
-          if (watches.empty()) {
+          if (g_watches.empty()) {
             std::cout << "No watch expressions\n";
           } else {
             print_watches(cpu);
@@ -209,7 +211,7 @@ int main() {
                 std::cerr << "Invalid register number\n";
                 break;
               }
-              watches.push_back(watch);
+              g_watches.push_back(watch);
               std::cout << "Added watch: " << expr << '\n';
             } catch (const std::exception& e) {
               std::cerr << "Invalid register format\n";
@@ -219,7 +221,7 @@ int main() {
             try {
               watch.type = WatchExpression::MEMORY;
               watch.value = std::stoul(expr, nullptr, 16);
-              watches.push_back(watch);
+              g_watches.push_back(watch);
               std::cout << "Added watch: " << expr << '\n';
             } catch (const std::exception& e) {
               std::cerr << "Invalid address format\n";
@@ -300,9 +302,11 @@ int main() {
             address_t addr;
             word_t value;
             infile.read(reinterpret_cast<char*>(&addr), sizeof(addr));
-            if (!infile) break;
+            if (!infile) { break;
+}
             infile.read(reinterpret_cast<char*>(&value), sizeof(value));
-            if (!infile) break;
+            if (!infile) { break;
+}
             try {
               cpu.get_memory().write_word(addr, value);
             } catch (...) {
@@ -321,7 +325,7 @@ int main() {
         break;
 
       case CommandType::QUIT:
-        input_handler.save_history(".ez_arch_history");
+        InputHandler::save_history(".ez_arch_history");
         running = false;
         break;
 
@@ -337,7 +341,7 @@ int main() {
   return 0;
 }
 
-void print_help() {
+void printHelp() {
   std::cout
       << "Available commands:\n"
       << "  help                  - Show this help\n"
@@ -360,7 +364,7 @@ void print_help() {
       << "  quit                  - Exit simulator\n";
 }
 
-std::vector<word_t> load_hex_file(const std::string& filename) {
+std::vector<word_t> loadHexFile(const std::string& filename) {
   std::vector<word_t> program;
   std::ifstream file(filename);
 
@@ -371,7 +375,8 @@ std::vector<word_t> load_hex_file(const std::string& filename) {
 
   std::string line;
   while (std::getline(file, line)) {
-    if (line.empty() || line[0] == '#') continue;
+    if (line.empty() || line[0] == '#') { continue;
+}
 
     try {
       word_t instruction = std::stoul(line, nullptr, 16);
@@ -384,9 +389,9 @@ std::vector<word_t> load_hex_file(const std::string& filename) {
   return program;
 }
 
-void print_watches(const CPU& cpu) {
+void printWatches(const CPU& cpu) {
   std::cout << "\nWatch expressions:\n";
-  for (const auto& watch : watches) {
+  for (const auto& watch : g_watches) {
     std::cout << "  " << watch.expr << " = ";
 
     try {

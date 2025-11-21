@@ -9,24 +9,24 @@ class Instruction {
 public:
     explicit Instruction(word_t raw);
     
-    InstructionFormat get_format() const;
-    uint8_t get_opcode() const;
+    [[nodiscard]] InstructionFormat getFormat() const;
+    [[nodiscard]] uint8_t getOpcode() const;
     
     // R-type fields
-    register_id_t get_rs() const;
-    register_id_t get_rt() const;
-    register_id_t get_rd() const;
-    uint8_t get_shamt() const;
-    uint8_t get_funct() const;
+    [[nodiscard]] register_id_t getRs() const;
+    [[nodiscard]] register_id_t getRt() const;
+    [[nodiscard]] register_id_t getRd() const;
+    [[nodiscard]] uint8_t getShamt() const;
+    [[nodiscard]] uint8_t getFunct() const;
     
     // I-type fields
-    int16_t get_immediate() const;
+    [[nodiscard]] int16_t getImmediate() const;
     
     // J-type fields
-    uint32_t get_address() const;
+    [[nodiscard]] uint32_t getAddress() const;
     
-    word_t get_raw() const { return m_raw; }
-    std::string to_string() const;
+    [[nodiscard]] word_t getRaw() const { return m_raw; }
+    [[nodiscard]] std::string toString() const;
     
 private:
     word_t m_raw;

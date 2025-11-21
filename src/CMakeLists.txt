@@ -39,6 +39,9 @@ add_library(ez_arch_core STATIC
     cli/input_handler.cpp
 )
 
+set_source_files_properties(input_handler.cpp PROPERTIES
+    SKIP_LINTING ON
+)
 target_include_directories(ez_arch_core PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
 if(USE_LINENOISE)

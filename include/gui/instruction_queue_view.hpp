@@ -15,22 +15,22 @@ public:
   using OnClearCallback = std::function<void()>;
   using OnMoveCallback = std::function<void(size_t, int)>; // index, delta (-1 up, +1 down)
 
-  InstructionQueueView(sf::Font& font);
+  explicit InstructionQueueView(sf::Font& font);
 
-  void setPosition(float x, float y);
-  void setSize(float w, float h);
+  void set_position(float x, float y);
+  void set_size(float w, float h);
 
-  void setItems(const std::vector<std::string>& items);
+  void set_items(const std::vector<std::string>& items);
 
-  void handleMouseMove(float x, float y);
-  void handleMousePress(float x, float y);
-  void handleMouseRelease(float x, float y);
+  void handle_mouse_move(float x, float y);
+  void handle_mouse_press(float x, float y);
+  void handle_mouse_release(float x, float y);
 
   void draw(sf::RenderWindow& window);
 
-  void setOnDelete(OnDeleteCallback cb) { m_onDelete = std::move(cb); }
-  void setOnClear(OnClearCallback cb) { m_onClear = std::move(cb); }
-  void setOnMove(OnMoveCallback cb) { m_onMove = std::move(cb); }
+  void set_on_delete(OnDeleteCallback cb) { m_onDelete = std::move(cb); }
+  void set_on_clear(OnClearCallback cb) { m_onClear = std::move(cb); }
+  void set_on_move(OnMoveCallback cb) { m_onMove = std::move(cb); }
 
 private:
   sf::Font& m_font;
@@ -46,7 +46,7 @@ private:
   OnClearCallback m_onClear;
   OnMoveCallback m_onMove;
 
-  void drawPanel(sf::RenderWindow& window);
+  void draw_panel(sf::RenderWindow& window) const;
 };
 
 } // namespace ez_arch

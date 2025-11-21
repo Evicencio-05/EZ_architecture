@@ -1,3 +1,5 @@
+// NOLINTBEGIN
+
 #include "cli/input_handler.hpp"
 #include <iostream>
 
@@ -15,10 +17,6 @@ InputHandler::InputHandler() {
 #else
   using_linenoise_ = false;
 #endif
-}
-
-InputHandler::~InputHandler() {
-  // Nothing to clean up
 }
 
 std::string InputHandler::readline(const char* prompt) {
@@ -43,7 +41,7 @@ std::string InputHandler::readline(const char* prompt) {
 void InputHandler::add_history(const std::string& line) {
 #ifdef USE_LINENOISE
   if (!line.empty()) {
-    linenoiseHistoryAdd(line.c_str());
+    linenoise_history_add(line.c_str());
   }
 #else
   (void)line;  // Suppress unused parameter warning
@@ -52,7 +50,7 @@ void InputHandler::add_history(const std::string& line) {
 
 bool InputHandler::save_history(const char* filename) {
 #ifdef USE_LINENOISE
-  return linenoiseHistorySave(filename) == 0;
+  return linenoise_history_save(filename) == 0;
 #else
   (void)filename;
   return false;
@@ -61,7 +59,7 @@ bool InputHandler::save_history(const char* filename) {
 
 bool InputHandler::load_history(const char* filename) {
 #ifdef USE_LINENOISE
-  return linenoiseHistoryLoad(filename) == 0;
+  return linenoise_history_load(filename) == 0;
 #else
   (void)filename;
   return false;
@@ -69,3 +67,5 @@ bool InputHandler::load_history(const char* filename) {
 }
 
 } // namespace ez_arch
+
+// NOLINTEND

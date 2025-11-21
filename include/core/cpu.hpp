@@ -4,13 +4,14 @@
 #include "memory.hpp"
 #include "instruction.hpp"
 #include "alu.hpp"
+#include <cstdint>
 #include <functional>
-#include <string>
 #include <string_view>
+#include <utility>
 
 namespace ez_arch {
 
-enum class ExecutionStage {
+enum class ExecutionStage : uint8_t {
     FETCH,
     DECODE,
     EXECUTE,
@@ -84,7 +85,7 @@ struct PipelineRegisters {
     alu_result = 0;
     mem_write_data = 0;
     write_reg = 0;
-    zero_flag = 0;
+    zero_flag = false;
   }
 };
 
@@ -93,55 +94,58 @@ public:
     CPU();
     
     // Execution control
-    void load_program(const std::vector<word_t>& program);
+    void loadProgram(const std::vector<word_t>& program);
     void step(); // Execute one instruction
     void run();  // Execute until halt
     void reset();
     
     // Step-by-step execution (for educational purposes)
-    ExecutionStage get_current_stage() const { return m_currentStage; }
-    void step_stage(); // Execute one pipeline stage
+    [[nodiscard]] ExecutionStage getCurrentStage() const { return m_currentStage; }
+    void stepStage(); // Execute one pipeline stage
     
     // State access
-    const RegisterFile& get_registers() const { return m_registers; }
-    RegisterFile& get_registers() { return m_registers; }
-    const Memory& get_memory() const { return m_memory; }
-    Memory& get_memory() { return m_memory; }
-    bool is_halted() const { return m_halted; }
+    [[nodiscard]] const RegisterFile& getRegisters() const { return m_registers; }
+    RegisterFile& getRegisters() { return m_registers; }
+    [[nodiscard]] const Memory& getMemory() const { return m_memory; }
+    Memory& getMemory() { return m_memory; }
+    [[nodiscard]] bool isHalted() const { return m_halted; }
     
     // Callbacks for visualization
     using StageCallback = std::function<void(ExecutionStage)>;
     void set_stage_callback(StageCallback callback) { m_stageCallback = callback; }
 
     Instruction get_current_instruction() const { return m_currentInstruction; }
+    void setStageCallback(StageCallback callback) { m_stageCallback = std::move(callback); }
+
+    [[nodiscard]] Instruction getCurrentInstruction() const { return m_currentInstruction; }
     
 private:
     RegisterFile m_registers;
     Memory m_memory;
     
     Instruction m_currentInstruction;
-    ExecutionStage m_currentStage;
-    bool m_halted;
+    ExecutionStage m_currentStage{ExecutionStage::FETCH};
+    bool m_halted{false};
     
     StageCallback m_stageCallback;
     
     PipelineRegisters m_pipeline;
 
-    void clear_pipeline();
-    ControlSignals generate_control_signals(uint8_t opcode);
-    ALUOperation alu_control(uint8_t ALUOp, uint8_t funct);
+    void clearPipeline();
+    static ControlSignals generateControlSignals(uint8_t opcode);
+    static ALUOperation aluControl(uint8_t aluOp, uint8_t funct);
 
     // Pipeline stages
     void fetch();
     void decode();
     void execute();
-    void m_memoryaccess();
-    void write_back();
+    void mMemoryaccess();
+    void writeBack();
     
     // Instruction execution
-    void execute_r_type(const Instruction& instr);
-    void execute_i_type(const Instruction& instr);
-    void execute_j_type(const Instruction& instr);
+    void executeRType(const Instruction& instr);
+    void executeIType(const Instruction& instr);
+    void executeJType(const Instruction& instr);
 };
 
 } // namespace ez_arch

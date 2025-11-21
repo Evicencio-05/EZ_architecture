@@ -1,10 +1,11 @@
 #pragma once
 
 #include "types.hpp"
+#include <cstdint>
 
 namespace ez_arch {
 
-enum class ALUOperation {
+enum class ALUOperation : uint8_t {
     ADD,
     SUB,
     AND,
@@ -22,10 +23,10 @@ public:
         bool negative;
     };
     
-    static Result execute(ALUOperation op, word_t operand1, word_t operand2);
+    static Result execute(ALUOperation operation, word_t operand1, word_t operand2);
     
 private:
-    static bool check_overflow(word_t a, word_t b, word_t result, bool is_add);
+    static bool checkOverflow(word_t first, word_t second, word_t result, bool isAdd);
 };
 
 } // namespace ez_arch

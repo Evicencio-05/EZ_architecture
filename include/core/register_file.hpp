@@ -9,19 +9,19 @@ class RegisterFile {
 public:
     RegisterFile();
     
-    word_t read(register_id_t reg) const;
+    [[nodiscard]] word_t read(register_id_t reg) const;
     void write(register_id_t reg, word_t value);
     void reset();
     
     // Special registers
-    word_t get_pc() const { return m_pc; }
-    void set_pc(word_t value) { m_pc = value; }
-    void increment_pc() { m_pc += 4; }
+    [[nodiscard]] word_t getPc() const { return m_pc; }
+    void setPc(word_t value) { m_pc = value; }
+    void incrementPc() { m_pc += 4; }
     
-    static constexpr size_t NUM_REGISTERS = 32;
+    static constexpr std::size_t kNUM_REGISTERS = 32;
     
 private:
-    std::array<word_t, NUM_REGISTERS> m_registers;
+    std::array<word_t, kNUM_REGISTERS> m_registers;
     word_t m_pc; // Program counter
 };
 

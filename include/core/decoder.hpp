@@ -10,7 +10,7 @@ class Decoder {
 public:
     static std::string decode(word_t instruction);
     
-    static word_t assemble(const std::string& assembly_line);
+    static word_t assemble(const std::string& assemblyLine);
     
     struct InstructionDetails {
         std::string mnemonic;
@@ -19,7 +19,7 @@ public:
         std::string description;
     };
     
-    static InstructionDetails get_details(word_t instruction);
+    static InstructionDetails getDetails(word_t instruction);
 };
 
 } // namespace ez_arch

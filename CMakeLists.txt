@@ -44,3 +44,4 @@ if(ENABLE_GUI)
     install(TARGETS ez_architecture_gui RUNTIME DESTINATION bin)
 endif()
 install(TARGETS ez_architecture_cli RUNTIME DESTINATION bin)
+

@@ -18,21 +18,21 @@ class DatapathView {
  public:
   DatapathView(const CPU& cpu, sf::Font& font);
 
-  void setPosition(float x, float y);
-  void setSize(float width, float height);
+  void set_position(float x, float y);
+  void set_size(float width, float height);
 
   void update();
   void draw(sf::RenderWindow& window);
 
-  void drawScaffolding(sf::RenderWindow& window, sf::Vector2f mainAreaSize);
+  void draw_scaffolding(sf::RenderWindow& window, sf::Vector2f main_area_size);
 
  private:
   const CPU& m_cpu;
   sf::Font& m_font;
-  float m_x;
-  float m_y;
-  float m_width;
-  float m_height;
+  float m_x{0.F};
+  float m_y{0.F};
+  float m_width{800.F};
+  float m_height{600.F};
 
   // Component positions (calculated based on size)
   struct ComponentBox {
@@ -43,27 +43,27 @@ class DatapathView {
     std::array<std::string, 4> outputs;
 
     // Helper to get connection points
-    sf::Vector2f getLeft(size_t inputPos, float characterSize = 12) const {
-      float yOffsetScale = static_cast<float>(
-          ((inputPos * 2) + 1) / static_cast<float>(inputs.size() * 2));
-      return {position.x + 5.f,
-              position.y + (size.y * yOffsetScale - characterSize)};
+    [[nodiscard]] sf::Vector2f get_left(size_t input_pos, float character_size = 12) const {
+      auto y_offset_scale = static_cast<float>(
+          ((input_pos * 2) + 1) / static_cast<float>(inputs.size() * 2));
+      return {position.x + 5.F,
+              position.y + (size.y * y_offset_scale - character_size)};
     }
-    sf::Vector2f getRight(size_t outputPos, float characterSize = 12,
-                          float xOffset = 0) const {
-      float yOffsetScale =
-          static_cast<float>(((outputPos * 2) + 1) / static_cast<float>(4 * 2));
-      return {position.x + (size.x / 2.f) + xOffset,
-              position.y + (size.y * yOffsetScale - characterSize)};
+    [[nodiscard]] sf::Vector2f get_right(size_t output_pos, float character_size = 12,
+                          float x_offset = 0) const {
+      auto y_offset_scale =
+          static_cast<float>(((output_pos * 2) + 1) / static_cast<float>(4 * 2));
+      return {position.x + (size.x / 2.F) + x_offset,
+              position.y + (size.y * y_offset_scale - character_size)};
     }
-    sf::Vector2f getTop() const {
-      return {position.x + size.x / 2.f, position.y};
+    [[nodiscard]] sf::Vector2f get_top() const {
+      return {position.x + (size.x / 2.F), position.y};
     }
-    sf::Vector2f getBottom() const {
-      return {position.x + size.x / 2.f, position.y + size.y};
+    [[nodiscard]] sf::Vector2f get_bottom() const {
+      return {position.x + (size.x / 2.F), position.y + size.y};
     }
-    sf::Vector2f getCenter() const {
-      return {position.x + size.x / 2.f, position.y + size.y / 2.f};
+    [[nodiscard]] sf::Vector2f get_center() const {
+      return {position.x + (size.x / 2.F), position.y + (size.y / 2.F)};
     }
   };
 
@@ -86,7 +86,8 @@ class DatapathView {
     }
 
     Wire& operator=(const Wire& other) {
-      if (this == &other) return *this;
+      if (this == &other) { return *this;
+}
       number = other.number;
       color = other.color;
       active = other.active;
@@ -108,12 +109,12 @@ class DatapathView {
   };
 
   struct WireLabel {
-    size_t wireIndex = NUMBER_OF_WIRES - 1;
+    size_t wireIndex = kNUMBER_OF_WIRES - 1;
     std::string label;
     bool valid = false;
     sf::Vector2f position;
 
-    const Wire& getWire(const DatapathView& view) const {
+    [[nodiscard]] const Wire& get_wire(const DatapathView& view) const {
       return view.m_wires[wireIndex];
     }
   };
@@ -142,30 +143,30 @@ class DatapathView {
   std::unique_ptr<AndGateShape> m_andGate;
 
   // All wire connections
-  static constexpr size_t NUMBER_OF_WIRES = 43;
-  static constexpr size_t NUMBER_OF_WIRE_LABLES = 23;
-  std::array<Wire, NUMBER_OF_WIRES>
+  static constexpr size_t kNUMBER_OF_WIRES = 43;
+  static constexpr size_t kNUMBER_OF_WIRE_LABLES = 23;
+  std::array<Wire, kNUMBER_OF_WIRES>
       m_wires{};  // Last wire is "invalid" and used as a temp wire for labels
-  std::array<WireLabel, NUMBER_OF_WIRE_LABLES> m_wireLabels{};
+  std::array<WireLabel, kNUMBER_OF_WIRE_LABLES> m_wireLabels{};
 
   // Drawing helpers
-  void calculateLayout();
-  void setupWires();
-  void setupWireLabels();
-  void updateWirePosition(float x, float y);
-  void updateWireLabelPosition(float x, float y);
-  void drawComponentBox(sf::RenderWindow& window, const ComponentBox& box,
+  void calculate_layout();
+  void setup_wires();
+  void setup_wire_labels();
+  void update_wire_position(float x, float y);
+  void update_wire_label_position(float x, float y);
+  void draw_component_box(sf::RenderWindow& window, const ComponentBox& box,
                         sf::Color color);
-  void drawEllipse(sf::RenderWindow& window,
+  void draw_ellipse(sf::RenderWindow& window,
                    std::unique_ptr<EllipseShape>& circle, sf::Color color);
-  void drawALU(sf::RenderWindow& window, std::unique_ptr<ALUShape>& alu,
+  static void draw_alu(sf::RenderWindow& window, std::unique_ptr<ALUShape>& alu,
                sf::Color color = sf::Color::White);
-  void drawMux(sf::RenderWindow& window, std::unique_ptr<MuxShape>& mux,
+  static void draw_mux(sf::RenderWindow& window, std::unique_ptr<MuxShape>& mux,
                sf::Color color = sf::Color::White);
-  void drawGate(sf::RenderWindow& window, std::unique_ptr<AndGateShape>& gate,
+  static void draw_gate(sf::RenderWindow& window, std::unique_ptr<AndGateShape>& gate,
                 sf::Color color = sf::Color::White);
-  void drawWire(sf::RenderWindow& window, Wire& wire);
-  void drawLabel(sf::RenderWindow& window, WireLabel& wireLable);
+  static void draw_wire(sf::RenderWindow& window, Wire& wire);
+  void draw_label(sf::RenderWindow& window, WireLabel& wire_lable);
 };
 
 }  // namespace ez_arch

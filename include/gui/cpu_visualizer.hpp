@@ -24,14 +24,14 @@ class CPUVisualizer {
   void draw();
 
   // Event handling
-  void handleMouseMove(float x, float y);
-  void handleMousePress(float x, float y);
-  void handleMouseRelease(float x, float y);
-  void handleMouseWheel(float x, float y, float delta);
-  void handleResize(unsigned width, unsigned height);
+  void handle_mouse_move(float x, float y);
+  void handle_mouse_press(float x, float y);
+  void handle_mouse_release(float x, float y);
+  void handle_mouse_wheel(float x, float y, float delta);
+  void handle_resize(unsigned width, unsigned height);
   // Keyboard/text input routed from main
-  void handleTextEntered(uint32_t codepoint);
-  void handleKeyPressed(int keyCode);
+  void handle_text_entered(uint32_t codepoint);
+  void handle_key_pressed(int key_code);
 
  private:
   CPU& m_cpu;
@@ -40,10 +40,10 @@ class CPUVisualizer {
   bool m_needsUpdate;
 
   // Layout helpers
-  void drawTopBar();
-  void drawLeftSidebar();
-  void drawMainArea();
-  void drawActiveView();
+  void draw_top_bar();
+  void draw_left_sidebar();
+  void draw_main_area();
+  void draw_active_view();
 
   // View components
   std::unique_ptr<RegisterView> m_registerView;
@@ -58,7 +58,7 @@ class CPUVisualizer {
 
   // Instruction queue (persistent)
   std::vector<std::string> m_instructionQueue;
-  void syncQueueToCache();
+  void sync_queue_to_cache();
 
   // View state
   enum class ActiveView {
@@ -71,8 +71,8 @@ class CPUVisualizer {
   };
   ActiveView m_activeView;
 
-  void drawPipelineStage();
-  bool loadFont();
+  void draw_pipeline_stage();
+  bool load_font();
 };
 
 }  // namespace ez_arch

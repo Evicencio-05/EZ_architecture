@@ -2,44 +2,44 @@
 #include "core/alu.hpp"
 #include <string>
 #include <string_view>
-#include <iostream>
 
 namespace ez_arch {
 
-CPU::CPU() : m_currentInstruction(0), m_currentStage(ExecutionStage::FETCH), m_halted(false) {
+CPU::CPU() : m_currentInstruction(0) {
   m_pipeline.clear();
 }
 
-void CPU::clear_pipeline() {
+void CPU::clearPipeline() {
   m_pipeline.clear();
 }
 
-void CPU::load_program(const std::vector<word_t>& program) {
-  m_memory.load_program(program, 0);
-  m_registers.set_pc(0);
+void CPU::loadProgram(const std::vector<word_t>& program) {
+  m_memory.loadProgram(program, 0);
+  m_registers.setPc(0);
   m_halted = false;
 }
 
 void CPU::step() {
-  if (m_halted) return;
+  if (m_halted) { return;
+}
   
   // Ensure we start from FETCH stage
   while (m_currentStage != ExecutionStage::FETCH) {
-    step_stage();
+    stepStage();
   }
 
   fetch();
   
   // Check halt condition after fetch
-  if (m_currentInstruction.get_raw() == 0) {
+  if (m_currentInstruction.getRaw() == 0) {
     m_halted = true;
     return;
   }
   
   decode();
   execute();
-  m_memoryaccess();
-  write_back();
+  mMemoryaccess();
+  writeBack();
 }
 
 void CPU::run() {
@@ -53,13 +53,15 @@ void CPU::reset() {
   m_memory.reset();
   m_currentStage = ExecutionStage::FETCH;
   m_halted = false;
-  clear_pipeline();
+  clearPipeline();
 }
 
-void CPU::step_stage() {
-  if (m_halted) return;
+void CPU::stepStage() {
+  if (m_halted) { return;
+}
 
-  if (m_stageCallback) m_stageCallback(m_currentStage);
+  if (m_stageCallback) { m_stageCallback(m_currentStage);
+}
 
   switch (m_currentStage) {
     case ExecutionStage::FETCH:
@@ -75,55 +77,55 @@ void CPU::step_stage() {
       m_currentStage = ExecutionStage::MEMORY_ACCESS;
       break;
     case ExecutionStage::MEMORY_ACCESS:
-      m_memoryaccess();
+      mMemoryaccess();
       m_currentStage = ExecutionStage::WRITE_BACK;
       break;
     case ExecutionStage::WRITE_BACK:
-      write_back();
+      writeBack();
       m_currentStage = ExecutionStage::FETCH;
       break;
   }
 }
 
-ControlSignals CPU::generate_control_signals(uint8_t opcode) {
+ControlSignals CPU::generateControlSignals(uint8_t opcode) {
   ControlSignals ctrl;
   ctrl.clear();
   
-  std::string_view control_bits;
+  std::string_view controlBits;
   
   switch (opcode) {
     case 0x00:
-      control_bits = "1000010001";
+      controlBits = "1000010001";
       break;
 
-    case Opcode::LW:
-      control_bits = "0001100011";
+    case Opcode::kLW:
+      controlBits = "0001100011";
       break;
 
-    case Opcode::SW:
-      control_bits = "0000000110";
+    case Opcode::kSW:
+      controlBits = "0000000110";
       break;
 
-    case Opcode::BEQ: [[fallthrough]];
-    case Opcode::BNE:
-      control_bits = "0010001000";  // ALUOp=01 for SUB
+    case Opcode::kBEQ: [[fallthrough]];
+    case Opcode::kBNE:
+      controlBits = "0010001000";  // ALUOp=01 for SUB
       break;
 
-    case Opcode::ADDI:
-      control_bits = "0000000011";
+    case Opcode::kADDI:
+      controlBits = "0000000011";
       break;
 
-    case Opcode::ANDI:
-      control_bits = "0000010011";
+    case Opcode::kANDI:
+      controlBits = "0000010011";
       break;
 
-    case Opcode::ORI:
-      control_bits = "0000010011";
+    case Opcode::kORI:
+      controlBits = "0000010011";
       break;
 
-    case Opcode::J: [[fallthrough]];
-    case Opcode::JAL:
-      control_bits = "0100000001";
+    case Opcode::kJ: [[fallthrough]];
+    case Opcode::kJAL:
+      controlBits = "0100000001";
       break;
 
     default:
@@ -131,35 +133,35 @@ ControlSignals CPU::generate_control_signals(uint8_t opcode) {
       return ctrl;
   }
 
-  ctrl.RegDst = (control_bits[0] == '1');
-  ctrl.Jump = (control_bits[1] == '1');
-  ctrl.Branch = (control_bits[2] == '1');
-  ctrl.MemRead = (control_bits[3] == '1');
-  ctrl.MemToReg = (control_bits[4] == '1');
-  std::string aluop_str(control_bits.substr(5, 2));
-  ctrl.ALUOp = std::stoi(aluop_str, nullptr, 2);
-  ctrl.MemWrite = (control_bits[7] == '1');
-  ctrl.ALUSrc = (control_bits[8] == '1');
-  ctrl.RegWrite = (control_bits[9] == '1');
+  ctrl.RegDst = (controlBits[0] == '1');
+  ctrl.Jump = (controlBits[1] == '1');
+  ctrl.Branch = (controlBits[2] == '1');
+  ctrl.MemRead = (controlBits[3] == '1');
+  ctrl.MemToReg = (controlBits[4] == '1');
+  std::string aluopStr(controlBits.substr(5, 2));
+  ctrl.ALUOp = std::stoi(aluopStr, nullptr, 2);
+  ctrl.MemWrite = (controlBits[7] == '1');
+  ctrl.ALUSrc = (controlBits[8] == '1');
+  ctrl.RegWrite = (controlBits[9] == '1');
 
   return ctrl;
 }
 
-ALUOperation CPU::alu_control(uint8_t ALUOp, uint8_t funct) {
-  if (ALUOp == 0b00) {
+ALUOperation CPU::aluControl(uint8_t aluOp, uint8_t funct) {
+  if (aluOp == 0b00) {
     return ALUOperation::ADD;
-  } else if (ALUOp == 0b01) {
+  } if (aluOp == 0b01) {
     return ALUOperation::SUB;
-  } else if (ALUOp == 0b10) {
+  } if (aluOp == 0b10) {
     switch (funct) {
-      case Funct::ADD: return ALUOperation::ADD;
-      case Funct::SUB: return ALUOperation::SUB;
-      case Funct::AND: return ALUOperation::AND;
-      case Funct::OR: return ALUOperation::OR;
-      case Funct::SLT: return ALUOperation::SLT;
+      case Funct::kADD: return ALUOperation::ADD;
+      case Funct::kSUB: return ALUOperation::SUB;
+      case Funct::kAND: return ALUOperation::AND;
+      case Funct::kOR: return ALUOperation::OR;
+      case Funct::kSLT: return ALUOperation::SLT;
       default: return ALUOperation::ADD;
     }
-  } else if (ALUOp == 0b11) {
+  } else if (aluOp == 0b11) {
     return ALUOperation::ADD; // placeholder
   }
 
@@ -168,109 +170,109 @@ ALUOperation CPU::alu_control(uint8_t ALUOp, uint8_t funct) {
 
 // Pipeline stages
 void CPU::fetch() {
-  word_t pc = m_registers.get_pc();
-  word_t instruction_word = m_memory.read_word(pc);
-  m_currentInstruction = Instruction(instruction_word);
+  word_t pc = m_registers.getPc(); // NOLINT
+  word_t instructionWord = m_memory.readWord(pc);
+  m_currentInstruction = Instruction(instructionWord);
 }
 
 void CPU::decode() {
-  m_pipeline.rs = m_currentInstruction.get_rs();
-  m_pipeline.rt = m_currentInstruction.get_rt();
-  m_pipeline.rd = m_currentInstruction.get_rd();
-  m_pipeline.funct = m_currentInstruction.get_funct();
-  m_pipeline.immediate = m_currentInstruction.get_immediate();
+  m_pipeline.rs = m_currentInstruction.getRs();
+  m_pipeline.rt = m_currentInstruction.getRt();
+  m_pipeline.rd = m_currentInstruction.getRd();
+  m_pipeline.funct = m_currentInstruction.getFunct();
+  m_pipeline.immediate = m_currentInstruction.getImmediate();
 
   m_pipeline.read_data_1 = m_registers.read(m_pipeline.rs);
   m_pipeline.read_data_2 = m_registers.read(m_pipeline.rt);
 
-  m_pipeline.control = generate_control_signals(m_currentInstruction.get_opcode());
+  m_pipeline.control = generateControlSignals(m_currentInstruction.getOpcode());
 }
 
 void CPU::execute() {
-  word_t alu_input_2;
-  uint8_t opcode = m_currentInstruction.get_opcode();
-  ALUOperation alu_op;
+  word_t aluInput2;
+  uint8_t opcode = m_currentInstruction.getOpcode();
+  ALUOperation aluOp;
   
   if (m_pipeline.control.ALUSrc) {
     // Use sign-extended immediate
-    alu_input_2 = static_cast<word_t>(static_cast<int32_t>(m_pipeline.immediate));
+    aluInput2 = static_cast<word_t>(static_cast<int32_t>(m_pipeline.immediate));
 
-    if (opcode == Opcode::ANDI || opcode == Opcode::ORI) {
-      alu_op = (opcode == Opcode::ANDI) ? ALUOperation::AND : ALUOperation::OR;
-      alu_input_2 = static_cast<word_t>(m_pipeline.immediate) & 0xFFFF;
+    if (opcode == Opcode::kANDI || opcode == Opcode::kORI) {
+      aluOp = (opcode == Opcode::kANDI) ? ALUOperation::AND : ALUOperation::OR;
+      aluInput2 = static_cast<word_t>(m_pipeline.immediate) & 0xFFFF;
     } else {
-      alu_op = alu_control(m_pipeline.control.ALUOp, m_pipeline.funct);
+      aluOp = aluControl(m_pipeline.control.ALUOp, m_pipeline.funct);
     }
   } else {
     // Use register value
-    alu_input_2 = m_pipeline.read_data_2;
-    alu_op = alu_control(m_pipeline.control.ALUOp, m_pipeline.funct);
+    aluInput2 = m_pipeline.read_data_2;
+    aluOp = aluControl(m_pipeline.control.ALUOp, m_pipeline.funct);
   }
   
   // Execute ALU operation
-  ALU::Result result = ALU::execute(alu_op, m_pipeline.read_data_1, alu_input_2);
+  ALU::Result result = ALU::execute(aluOp, m_pipeline.read_data_1, aluInput2);
   m_pipeline.alu_result = result.value;
   m_pipeline.zero_flag = result.zero;
 
   m_pipeline.write_reg = m_pipeline.control.RegDst ? m_pipeline.rd : m_pipeline.rt;
   m_pipeline.mem_write_data = m_pipeline.read_data_2;
   
-  word_t pc = m_registers.get_pc();
+  word_t pc = m_registers.getPc(); // NOLINT
 
   if (m_pipeline.control.Branch) {
-    bool take_branch = false;
+    bool takeBranch = false;
 
-    if (opcode == Opcode::BEQ) {
-      take_branch = m_pipeline.zero_flag;
-    } else if (opcode == Opcode::BNE) {
-      take_branch = !m_pipeline.zero_flag;
+    if (opcode == Opcode::kBEQ) {
+      takeBranch = m_pipeline.zero_flag;
+    } else if (opcode == Opcode::kBNE) {
+      takeBranch = !m_pipeline.zero_flag;
     }
 
-    if (take_branch) {
-      word_t sign_extended_imm = static_cast<word_t>(static_cast<int32_t>(m_pipeline.immediate));
-      m_registers.set_pc(pc + (sign_extended_imm << 2));
+    if (takeBranch) {
+      auto signExtendedImm = static_cast<word_t>(static_cast<int32_t>(m_pipeline.immediate));
+      m_registers.setPc(pc + (signExtendedImm << 2));
     }
   }
 
   if (m_pipeline.control.Jump) {
-    address_t addr = m_currentInstruction.get_address();
-    word_t jump_addr = ((pc + 4) & 0xF0000000) | (addr << 2);
+    address_t addr = m_currentInstruction.getAddress();
+    word_t jumpAddr = ((pc + 4) & 0xF0000000) | (addr << 2);
 
-    if (opcode == Opcode::JAL) {
+    if (opcode == Opcode::kJAL) {
       m_pipeline.wb_data = pc + 4;
       m_pipeline.write_reg = 31; // $ra
     }
 
-    m_registers.set_pc(jump_addr - 4);
+    m_registers.setPc(jumpAddr - 4);
   }
 
 }
 
-void CPU::m_memoryaccess() {
+void CPU::mMemoryaccess() {
   if (m_pipeline.control.MemRead) {
-    m_pipeline.mem_read_data = m_memory.read_word(m_pipeline.alu_result);
+    m_pipeline.mem_read_data = m_memory.readWord(m_pipeline.alu_result);
   }
 
   if (m_pipeline.control.MemWrite) {
-    m_memory.write_word(m_pipeline.alu_result, m_pipeline.mem_write_data);
+    m_memory.writeWord(m_pipeline.alu_result, m_pipeline.mem_write_data);
   }
 }
 
-void CPU::write_back() {
+void CPU::writeBack() {
   if (m_pipeline.control.RegWrite) {
-    word_t write_data;
+    word_t writeData;
     if (m_pipeline.control.MemToReg) {
-      write_data = m_pipeline.mem_read_data;
-    } else if (m_pipeline.control.Jump && m_currentInstruction.get_opcode() == Opcode::JAL) {
-      write_data = m_pipeline.wb_data;
+      writeData = m_pipeline.mem_read_data;
+    } else if (m_pipeline.control.Jump && m_currentInstruction.getOpcode() == Opcode::kJAL) {
+      writeData = m_pipeline.wb_data;
     } else {
-      write_data = m_pipeline.alu_result;
+      writeData = m_pipeline.alu_result;
     }
 
-    m_registers.write(m_pipeline.write_reg, write_data);
+    m_registers.write(m_pipeline.write_reg, writeData);
   }
 
-  m_registers.increment_pc();
+  m_registers.incrementPc();
 
   m_pipeline.clear();
 }

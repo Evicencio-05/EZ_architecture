@@ -2,19 +2,19 @@
 
 namespace ez_arch {
 
-ALU::Result ALU::execute(ALUOperation op, word_t operand1, word_t operand2) {
+ALU::Result ALU::execute(ALUOperation operation, word_t operand1, word_t operand2) {
     Result result;
     result.overflow = false;  // Default to no overflow
     
-    switch(op) {
+    switch(operation) {
         case ALUOperation::ADD:
             result.value = operand1 + operand2;
-            result.overflow = check_overflow(operand1, operand2, result.value, true);
+            result.overflow = checkOverflow(operand1, operand2, result.value, true);
             break;
 
         case ALUOperation::SUB:
             result.value = operand1 - operand2;
-            result.overflow = check_overflow(operand1, operand2, result.value, false);
+            result.overflow = checkOverflow(operand1, operand2, result.value, false);
             break;
             
         case ALUOperation::AND:
@@ -28,9 +28,9 @@ ALU::Result ALU::execute(ALUOperation op, word_t operand1, word_t operand2) {
             break;
             
         case ALUOperation::SLT: {
-            int32_t signed_op1 = static_cast<int32_t>(operand1);
-            int32_t signed_op2 = static_cast<int32_t>(operand2);
-            result.value = (signed_op1 < signed_op2) ? 1 : 0;
+            auto signedOp1 = static_cast<int32_t>(operand1);
+            auto signedOp2 = static_cast<int32_t>(operand2);
+            result.value = (signedOp1 < signedOp2) ? 1 : 0;
             result.overflow = false;
             break;
         }
@@ -48,16 +48,15 @@ ALU::Result ALU::execute(ALUOperation op, word_t operand1, word_t operand2) {
     return result;
 }
 
-bool ALU::check_overflow(word_t a, word_t b, word_t result, bool is_add) {
-  bool sign_a     = (a >> 31) & 1;
-  bool sign_b     = (b >> 31) & 1;
-  bool sign_result  = (result >> 31) & 1;
+bool ALU::checkOverflow(word_t first, word_t second, word_t result, bool isAdd) {
+  bool signA     = ((first >> 31) & 1) != 0U;
+  bool signB     = ((second >> 31) & 1) != 0U;
+  bool signResult  = ((result >> 31) & 1) != 0U;
 
-  if (is_add) {
-        return (sign_a == sign_b) && (sign_a != sign_result);
-    } else {
-        return (sign_a != sign_b) && (sign_a != sign_result);
-    }
+  if (isAdd) {
+        return (signA == signB) && (signA != signResult);
+    }         return (signA != signB) && (signA != signResult);
+   
 }
 
 } // namespace ez_arch
