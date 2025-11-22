@@ -11,11 +11,9 @@ namespace ez_arch {
 
 static std::string getHome() {
 #ifdef _WIN32
-  // Windows: Try USERPROFILE first (standard), then HOMEPATH + HOMEDRIVE
   const char* profile = std::getenv("USERPROFILE");
   if (profile != nullptr && *profile != '\0') { return std::string(profile); }
 
-  // Fallback for older Windows systems
   const char* home_drive = std::getenv("HOMEDRIVE");
   const char* home_path = std::getenv("HOMEPATH");
   if (home_drive != nullptr && home_path != nullptr && *home_drive != '\0'
@@ -23,12 +21,10 @@ static std::string getHome() {
     return std::string(home_drive) + std::string(home_path);
   }
 #else
-  // Linux and macOS: Use HOME environment variable
   const char* home = std::getenv("HOME");
   if (home != nullptr && *home != '\0') { return std::string {home}; }
 #endif
 
-  // Fallback to current directory if all else fails
   return ".";
 }
 
@@ -36,12 +32,8 @@ static std::string getCachePath() {
   std::string base = getHome();
 
 #ifdef _WIN32
-  // Windows: Use AppData/Local folder for cache
-   // Creates: C:\Users\Username\AppData\Local\ez_arch\
   base += "\\AppData\\Local\\ez_arch";
 #else
-  // Linux and macOS: Use XDG_CACHE_HOME or default ~/.cache
-  // Creates: ~/.cache/ez_arch/
   const char* xdgCache = std::getenv("XDG_CACHE_HOME");
   if (xdgCache != nullptr && *xdgCache != '\0') {
     base = std::string(xdgCache) + "/ez_arch";

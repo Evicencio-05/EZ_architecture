@@ -1,5 +1,6 @@
-#include <gtest/gtest.h>
 #include "core/alu.hpp"
+
+#include <gtest/gtest.h>
 
 using namespace ez_arch;
 
@@ -30,7 +31,8 @@ TEST(ALUTest, AddWithOverflow) {
 }
 
 TEST(ALUTest, AddNegativeNumbers) {
-  auto result = ALU::execute(ALUOperation::ADD, static_cast<word_t>(-10), static_cast<word_t>(-20));
+  auto result = ALU::execute(
+      ALUOperation::ADD, static_cast<word_t>(-10), static_cast<word_t>(-20));
   EXPECT_EQ(static_cast<int32_t>(result.value), -30);
   EXPECT_FALSE(result.zero);
   EXPECT_TRUE(result.negative);
@@ -137,7 +139,8 @@ TEST(ALUTest, SltSignedComparison) {
 
 TEST(ALUTest, SltNegativeNumbers) {
   // -10 < -5
-  auto result = ALU::execute(ALUOperation::SLT, static_cast<word_t>(-10), static_cast<word_t>(-5));
+  auto result = ALU::execute(
+      ALUOperation::SLT, static_cast<word_t>(-10), static_cast<word_t>(-5));
   EXPECT_EQ(result.value, 1);
 }
 

@@ -1,5 +1,6 @@
-#include <gtest/gtest.h>
 #include "cli/command_parser.hpp"
+
+#include <gtest/gtest.h>
 
 using namespace ez_arch;
 
@@ -13,7 +14,7 @@ TEST(CommandParserTest, ParseHelp) {
 TEST(CommandParserTest, ParseHelpShortForm) {
   Command cmd1 = CommandParser::parse("h");
   EXPECT_EQ(cmd1.type, CommandType::HELP);
-  
+
   Command cmd2 = CommandParser::parse("?");
   EXPECT_EQ(cmd2.type, CommandType::HELP);
 }
@@ -132,7 +133,7 @@ TEST(CommandParserTest, ParseQuit) {
 TEST(CommandParserTest, ParseQuitShortForm) {
   Command cmd1 = CommandParser::parse("q");
   EXPECT_EQ(cmd1.type, CommandType::QUIT);
-  
+
   Command cmd2 = CommandParser::parse("exit");
   EXPECT_EQ(cmd2.type, CommandType::QUIT);
 }
@@ -146,10 +147,10 @@ TEST(CommandParserTest, ParseUnknownCommand) {
 TEST(CommandParserTest, CaseInsensitiveHelp) {
   Command cmd1 = CommandParser::parse("HELP");
   EXPECT_EQ(cmd1.type, CommandType::HELP);
-  
+
   Command cmd2 = CommandParser::parse("HeLp");
   EXPECT_EQ(cmd2.type, CommandType::HELP);
-  
+
   Command cmd3 = CommandParser::parse("help");
   EXPECT_EQ(cmd3.type, CommandType::HELP);
 }

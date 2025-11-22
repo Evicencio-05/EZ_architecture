@@ -13,9 +13,16 @@ endif()
 if(ENABLE_GUI)
   include(FetchContent)
 
-  set(SFML_USE_SYSTEM_DEPS   ON CACHE BOOL "" FORCE)
-  set(SFML_BUILD_AUDIO       FALSE CACHE BOOL "" FORCE)
-  set(SFML_BUILD_NETWORK     FALSE CACHE BOOL "" FORCE)
+  set(SFML_USE_SYSTEM_DEPS  ON CACHE BOOL "" FORCE)
+  set(SFML_BUILD_WINDOW     ON CACHE BOOL "" FORCE)
+  set(SFML_BUILD_GRAPHICS   ON CACHE BOOL "" FORCE)
+
+  set(SFML_BUILD_AUDIO      OFF CACHE BOOL "" FORCE)
+  set(SFML_BUILD_NETWORK    OFF CACHE BOOL "" FORCE)
+  set(SFML_ENABLE_AUDIO     OFF CACHE BOOL "" FORCE)
+  set(SFML_ENABLE_NETWORK   OFF CACHE BOOL "" FORCE)
+
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-strict-aliasing")
 
   FetchContent_Declare(
         SFML
@@ -25,7 +32,6 @@ if(ENABLE_GUI)
   FetchContent_MakeAvailable(SFML)
 endif()
 
-# Core library (shared by CLI, GUI and tests)
 add_library(ez_arch_core STATIC
     core/register_file.cpp
     core/memory.cpp

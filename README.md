@@ -12,10 +12,12 @@ A MIPS computer architecture learning tool that helps visualize how MIPS instruc
 ## Dependencies
 
 ### Required
+
 - **CMake** (>= 4.1.2)
 - **C++17** compatible compiler (GCC, Clang, MSVC)
 
 ### Optional
+
 - **SFML** - for GUI mode (CLI works without it)
 - **linenoise** - included, provides command history and line editing in CLI
 
@@ -91,14 +93,17 @@ Or run individual tests:
 ## Supported MIPS Instructions
 
 ### R-Type Instructions
+
 - `add`, `sub`, `and`, `or`, `slt`
 
 ### I-Type Instructions
+
 - `addi`, `andi`, `ori`
 - `lw`, `sw` (load/store word)
 - `beq`, `bne` (branch equal/not equal)
 
 ### J-Type Instructions
+
 - `j`, `jal` (jump/jump and link)
 
 ## Development Roadmap
@@ -107,10 +112,11 @@ Or run individual tests:
 - [x] Add instruction decoder
 - [x] Create CLI interface
 - [ ] Build GUI visualizer
-- [ ] Add comprehensive tests
+- [ ] Add tests
 - [x] Implement all basic MIPS instructions
 - [ ] Add pipeline hazard detection
 - [x] Create example programs for CLI
+- [ ] Make GUI adapt to instructions
 
 ## License
 
