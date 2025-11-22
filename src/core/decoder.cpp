@@ -8,6 +8,7 @@
 #include <cctype>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
 namespace ez_arch {
 
@@ -39,12 +40,13 @@ static std::string decodeRType(const Instruction& instruction) {
   default:
     return "unknown";
   }
-
-  std::stringstream ss;
-  ss << mnemonic << " " << kREGISTER_NAMES[rd] << ", " << kREGISTER_NAMES[rs]
-     << ", " << kREGISTER_NAMES[rt];
-
-  return ss.str();
+  //
+  // std::stringstream ss;
+  // ss << mnemonic << " " << kREGISTER_NAMES[rd] << ", " << kREGISTER_NAMES[rs]
+  //    << ", " << kREGISTER_NAMES[rt];
+  //
+  // return ss.str();
+  return mnemonic;
 }
 
 static std::string decodeIType(const Instruction& instruction) {
@@ -137,6 +139,7 @@ Decoder::InstructionDetails Decoder::getDetails(word_t instruction) {
   InstructionDetails details;
 
   details.mnemonic = decode(instruction);
+  std::cout << "Mnemonic in Decoder: " << details.mnemonic << '\n';
   details.format = instr.getFormat();
 
   switch (details.format) {

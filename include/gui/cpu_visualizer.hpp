@@ -38,9 +38,12 @@ private:
   sf::RenderWindow& m_window;
   sf::Font m_font;
   bool m_needsUpdate;
+  bool m_updateTopBar;
+  bool m_runningInstructions;
 
   // Layout helpers
   void drawTopBar();
+  void drawTopBarText();
   void drawLeftSidebar();
   void drawMainArea();
   void drawActiveView();

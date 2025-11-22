@@ -20,38 +20,35 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
     std::cerr << "Warning: Could not load font. Text will not display.\n";
   }
 
-  // Initialize view state
   m_activeView = ActiveView::NONE;
 
   m_needsUpdate = true;
+  m_updateTopBar = true;
+  m_runningInstructions = false;
 
-  // Create the register view
   m_registerView = std::make_unique<RegisterView>(m_cpu.getRegisters(), m_font);
   m_registerView->setPosition(kLEFT_SIDEBAR_WIDTH + 20.F,
                               kTOP_BAR_HEIGHT + 20.F);
 
-  // Create the memory view
   m_memoryView = std::make_unique<MemoryView>(
       m_cpu.getMemory(), m_cpu.getRegisters(), m_font);
   m_memoryView->setPosition(kLEFT_SIDEBAR_WIDTH + 20.F, kTOP_BAR_HEIGHT + 20.F);
   m_memoryView->setDisplayRange(0, 16);
 
-  // Create the instruction view
   m_instructionView = std::make_unique<InstructionView>(
       m_cpu.getMemory(), m_cpu.getRegisters(), m_font);
   m_instructionView->setPosition(kLEFT_SIDEBAR_WIDTH + 20.F,
                                  kTOP_BAR_HEIGHT + 20.F);
   m_instructionView->setDisplayRange(0, 16);
 
-  // Create the datapath view for main area
   m_datapathView = std::make_unique<DatapathView>(m_cpu, m_font);
 
-  // Create control buttons - positioned in top bar
   auto stepStageBtn = std::make_unique<Button>("Stage", m_font);
   stepStageBtn->setPosition(700.F, 15.F);
   stepStageBtn->setCallback([this]() {
     m_cpu.stepStage();
     m_needsUpdate = true;
+    m_updateTopBar = true;
   });
   m_buttons.push_back(std::move(stepStageBtn));
 
@@ -60,6 +57,7 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
   stepBtn->setCallback([this]() {
     m_cpu.step();
     m_needsUpdate = true;
+    m_updateTopBar = true;
   });
   m_buttons.push_back(std::move(stepBtn));
 
@@ -68,6 +66,7 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
   runBtn->setCallback([this]() {
     m_cpu.run();
     m_needsUpdate = true;
+    m_runningInstructions = true;
   });
   m_buttons.push_back(std::move(runBtn));
 
@@ -76,14 +75,14 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
   resetBtn->setCallback([this]() {
     m_cpu.reset();
     m_needsUpdate = true;
+    m_updateTopBar = true;
   });
   m_buttons.push_back(std::move(resetBtn));
 
-  // Load queued to memory button
   auto loadBtn = std::make_unique<Button>("LoadQ", m_font);
   loadBtn->setPosition(1100.F, 15.F);
   loadBtn->setCallback([this]() {
-    // Append instructions into memory at base address 0x100, sequentially
+    // Append instructions into memory at base address 0x100
     const uint32_t kBASE = 0x00000100;
     uint32_t addr = kBASE;
     for (const auto& line : m_instructionQueue) {
@@ -98,10 +97,10 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
     // Set PC to the base of the loaded block
     m_cpu.getRegisters().setPc(kBASE);
     m_needsUpdate = true;
+    m_updateTopBar = true;
   });
   m_buttons.push_back(std::move(loadBtn));
 
-  // Run from queue button
   auto runQBtn = std::make_unique<Button>("RunQ", m_font);
   runQBtn->setPosition(1200.F, 15.F);
   runQBtn->setCallback([this]() {
@@ -117,10 +116,10 @@ CPUVisualizer::CPUVisualizer(CPU& cpu, sf::RenderWindow& window)
     m_cpu.getRegisters().setPc(kBASE);
     m_cpu.run();
     m_needsUpdate = true;
+    m_runningInstructions = true;
   });
   m_buttons.push_back(std::move(runQBtn));
 
-  // Create toggle buttons - positioned in left sidebar
   auto regToggle = std::make_unique<Button>("R", m_font);
   regToggle->setPosition(5.F, kTOP_BAR_HEIGHT + 10.F);
   regToggle->setSize(kTOGGLE_BUTTON_SIZE, kTOGGLE_BUTTON_SIZE);
@@ -255,6 +254,7 @@ void CPUVisualizer::handleResize(unsigned width, unsigned height) {
   // TODO(evice): Resize other views
 
   m_needsUpdate = true;
+  m_updateTopBar = true;
 }
 
 void CPUVisualizer::update() {
@@ -268,9 +268,11 @@ void CPUVisualizer::update() {
   }
 }
 
+// TODO: Only draw when needed
 void CPUVisualizer::draw() {
   // Draw layout sections
-  drawTopBar();
+  if (m_updateTopBar) { drawTopBar(); }
+  if (m_runningInstructions) { drawTopBarText(); }
   drawLeftSidebar();
   drawMainArea();
   drawActiveView();
@@ -336,22 +338,9 @@ void CPUVisualizer::handleMouseWheel(float x, float y, float delta) {
   }
 }
 
-void CPUVisualizer::drawTopBar() {
-  auto windowSize = m_window.getSize();
-
-  // Draw top bar background
-  sf::RectangleShape topBar(
-      {static_cast<float>(windowSize.x), kTOP_BAR_HEIGHT});
-  topBar.setPosition({0, 0});
-  topBar.setFillColor(kVIEW_BOX_BACKGROUND_COLOR);
-  topBar.setOutlineColor(kVIEW_BOX_OUTLINE_COLOR);
-  topBar.setOutlineThickness(2.F);
-  m_window.draw(topBar);
-
-  // Draw pipeline stage (compact version)
+void CPUVisualizer::drawTopBarText() {
   drawPipelineStage();
 
-  // Draw PC info
   sf::Text pcText(m_font);
   std::ostringstream pcStream;
   pcStream << "PC: 0x" << std::hex << std::setw(8) << std::setfill('0')
@@ -362,17 +351,34 @@ void CPUVisualizer::drawTopBar() {
   pcText.setPosition({300.F, 20.F});
   m_window.draw(pcText);
 
-  // Draw current instruction
   word_t pc = m_cpu.getRegisters().getPc();
   word_t instr = m_cpu.getMemory().readWord(pc);
-  std::string decoded = Decoder::decode(instr);
+  Decoder::InstructionDetails decoded = Decoder::getDetails(instr);
 
-  sf::Text instrText(m_font);
-  instrText.setString("Instruction: " + decoded);
-  instrText.setCharacterSize(16);
+  std::string instruction = decoded.mnemonic;
+
+  for (std::string& field : decoded.fields) {
+    instruction += field;
+  }
+
+  sf::Text instrText(m_font, "Instruction: " + instruction, 16);
   instrText.setFillColor(kTITLE_TEXT_COLOR);
   instrText.setPosition({500.F, 20.F});
   m_window.draw(instrText);
+}
+
+void CPUVisualizer::drawTopBar() {
+  auto windowSize = m_window.getSize();
+
+  sf::RectangleShape topBar(
+      {static_cast<float>(windowSize.x), kTOP_BAR_HEIGHT});
+  topBar.setPosition({0, 0});
+  topBar.setFillColor(kVIEW_BOX_BACKGROUND_COLOR);
+  topBar.setOutlineColor(kVIEW_BOX_OUTLINE_COLOR);
+  topBar.setOutlineThickness(2.F);
+  m_window.draw(topBar);
+
+  drawTopBarText();
 }
 
 void CPUVisualizer::drawLeftSidebar() {
@@ -504,7 +510,6 @@ void CPUVisualizer::handleKeyPressed(int keyCode) {
   }
 }
 
-// FIX: Fix instruction que static member access
 void CPUVisualizer::syncQueueToCache(
     std::vector<std::string>& instructionQueue) {
   InstructionCache::save(instructionQueue);

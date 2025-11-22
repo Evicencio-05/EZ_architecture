@@ -11,10 +11,13 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Window.hpp>
+#include <array>
 #include <cstddef>
+#include <cstdint>
+#include <iostream>
 #include <memory>
 #include <string>
-
+#include <vector>
 
 namespace ez_arch {
 
@@ -26,7 +29,7 @@ static void centerText(sf::Text& label) {
 }
 
 DatapathView::DatapathView(const CPU& cpu, sf::Font& font)
-    : m_cpu(cpu), m_font(font) {
+    : m_cpu(cpu), m_font(font), m_currentWiresInstruction("Unknown") {
   m_control = std::make_unique<EllipseShape>();
   m_signExt = std::make_unique<EllipseShape>();
   m_ALUControl = std::make_unique<EllipseShape>();
@@ -199,25 +202,21 @@ void DatapathView::updateWireLabelPosition(float x, float y) {
 
 void DatapathView::update() {
   word_t rawInstruction = m_cpu.getCurrentInstruction().getRaw();
-  std::string currentInstructionName =
-      ez_arch::Decoder::getDetails(rawInstruction).mnemonic;
-
-  for (auto& wire : m_wires) {
-    wire.active = true;
+  std::string instructionName =
+      Decoder::getDetails(rawInstruction).mnemonic;
+  if (instructionName != m_currentWiresInstruction) {
+    for (auto& wire : m_wires) {
+      wire.active = true;
+    }
+    std::cout << instructionName << " | " << m_currentWiresInstruction << '\n';
+    turnOffWires(instructionName);
   }
-
-  std::vector<size_t> offWires;
-  offWires.reserve(m_wires.size());
-
 
   // Update will be used to highlight active paths based on current instruction
 }
 
 void DatapathView::draw(sf::RenderWindow& window) {
   // Draw wires first so they appear behind components
-  for (auto& wire : m_wires) {
-    drawWire(window, wire);
-  }
 
   for (size_t i = 0; i < DatapathView::kNUMBER_OF_WIRE_LABLES; ++i) {
     drawLabel(window, m_wireLabels[i]);
@@ -246,6 +245,9 @@ void DatapathView::draw(sf::RenderWindow& window) {
   drawMux(window, m_writeMux);
 
   drawGate(window, m_andGate);
+  for (auto& wire : m_wires) {
+    drawWire(window, wire);
+  }
 }
 
 void DatapathView::drawComponentBox(sf::RenderWindow& window,
@@ -356,37 +358,37 @@ void DatapathView::drawWire(sf::RenderWindow& window, Wire& wire) {
   window.draw(*wire.vertices);
 
   // Used for identifying wires
-  // if (length >= 2) {
-  //   sf::Text beginning(m_font, wire.number, 15);
-  //   beginning.setFillColor(sf::Color::Black);
-  //   sf::Vector2f first = wire.vertices->operator[](0).position;
-  //   beginning.setPosition(first);
-  //   centerText(beginning);
-  //   window.draw(beginning);
-  //
-  //   sf::Text end(m_font, wire.number, 15);
-  //   end.setFillColor(sf::Color::Black);
-  //   sf::Vector2f last = wire.vertices->operator[](length - 1).position;
-  //   end.setPosition(last);
-  //   centerText(end);
-  //   window.draw(end);
-  // }
+  if (length >= 2) {
+    sf::Text beginning(m_font, wire.number, 15);
+    beginning.setFillColor(sf::Color::Black);
+    sf::Vector2f first = wire.vertices->operator[](0).position;
+    beginning.setPosition(first);
+    centerText(beginning);
+    window.draw(beginning);
+
+    sf::Text end(m_font, wire.number, 15);
+    end.setFillColor(sf::Color::Black);
+    sf::Vector2f last = wire.vertices->operator[](length - 1).position;
+    end.setPosition(last);
+    centerText(end);
+    window.draw(end);
+  }
 
   // Draw arrowhead at end
-  if (!wire.no_arrow && length >= 2) {
-    sf::Vector2f backPositon = wire.vertices->operator[](length - 1).position;
-    sf::VertexArray arrowhead(sf::PrimitiveType::Triangles, 3);
-    arrowhead[0].position =
-        sf::Vector2f(backPositon.x - 5.F, backPositon.y - 6.F);
-    arrowhead[0].color = lineColor;
-    arrowhead[1].position = backPositon;
-    arrowhead[1].color = lineColor;
-    arrowhead[2].position =
-        sf::Vector2f(backPositon.x - 5.F, backPositon.y + 5.F);
-    arrowhead[2].color = lineColor;
-
-    window.draw(arrowhead);
-  }
+  // if (!wire.no_arrow && length >= 2) {
+  //   sf::Vector2f backPositon = wire.vertices->operator[](length -
+  //   1).position; sf::VertexArray arrowhead(sf::PrimitiveType::Triangles, 3);
+  //   arrowhead[0].position =
+  //       sf::Vector2f(backPositon.x - 5.F, backPositon.y - 6.F);
+  //   arrowhead[0].color = lineColor;
+  //   arrowhead[1].position = backPositon;
+  //   arrowhead[1].color = lineColor;
+  //   arrowhead[2].position =
+  //       sf::Vector2f(backPositon.x - 5.F, backPositon.y + 5.F);
+  //   arrowhead[2].color = lineColor;
+  //
+  //   window.draw(arrowhead);
+  // }
 }
 
 void DatapathView::setupWires() {
@@ -746,6 +748,26 @@ void DatapathView::drawLabel(sf::RenderWindow& window, WireLabel& wireLable) {
   label.setPosition(wireLable.position);
   centerText(label);
   window.draw(label);
+}
+
+void DatapathView::turnOffWires(const std::string& instructionName) {
+  std::vector<std::uint8_t> offWires;
+  offWires.reserve(20);
+  if (instructionName == "add" || instructionName == "sub"
+      || instructionName == "and" || instructionName == "or"
+      || instructionName == "slt") {
+    offWires = {10, 11, 17, 30, 18, 27, 20, 7, 15, 22};
+  } else if (instructionName == "lw" || instructionName == "sw") {
+    offWires = {10, 11, 17, 30, 18, 27, 20, 7, 15, 22};
+  } else if (instructionName == "beq") {
+    offWires = {10, 11, 17, 30, 18, 27, 20, 7, 15, 22};
+  } else if (instructionName == "j" || instructionName == "jal") {
+    offWires = {10, 11, 17, 30, 18, 27, 20, 7, 15, 22};
+  }
+
+  for (size_t position : offWires) {
+    m_wires[position].active = false;
+  }
 }
 
 } // namespace ez_arch

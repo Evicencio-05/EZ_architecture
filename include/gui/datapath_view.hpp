@@ -10,6 +10,7 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace ez_arch {
@@ -29,6 +30,7 @@ public:
 private:
   const CPU& m_cpu;
   sf::Font& m_font;
+  std::string m_currentWiresInstruction;
   float m_x {0.F};
   float m_y {0.F};
   float m_width {800.F};
@@ -171,8 +173,9 @@ private:
   static void drawGate(sf::RenderWindow& window,
                        std::unique_ptr<AndGateShape>& gate,
                        sf::Color color = sf::Color::White);
-  static void drawWire(sf::RenderWindow& window, Wire& wire);
+  void drawWire(sf::RenderWindow& window, Wire& wire);
   void drawLabel(sf::RenderWindow& window, WireLabel& wireLable);
+  void turnOffWires(const std::string& instructionName);
 };
 
 } // namespace ez_arch
